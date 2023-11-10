@@ -1,9 +1,10 @@
 import express, { Application, Request, Response, NextFunction } from 'express';
 import cookieParser from 'cookie-parser';
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
-import passport from 'passport';
+// import bcrypt from 'bcrypt';
+// import jwt from 'jsonwebtoken';
+// import passport from 'passport';
 import { PrismaClient } from '@prisma/client';
+import indexRoutes from './Routes/indexRoute'
 
 // Prisma Client
 const prisma = new PrismaClient();
@@ -23,10 +24,8 @@ app.use(express.json());
 // Configuration de Passport (si vous utilisez des stratégies d'authentification)
 // À configurer selon vos besoins...
 
-// Un exemple de route
-app.get('/', (req: Request, res: Response) => {
-    res.send('Hello, World!');
-});
+//Définition dans indexRoute
+app.use('/api', indexRoutes);
 
 // Middleware pour gérer les erreurs
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {

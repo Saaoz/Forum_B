@@ -1,5 +1,5 @@
 // prisma/seed.js
-// commande : npx prisma db seed
+// commande : npx prisma db seed npx prisma studio
 
 import { PrismaClient } from '@prisma/client';
 import { hash } from 'bcrypt';
