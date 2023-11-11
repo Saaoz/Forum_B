@@ -3,6 +3,9 @@ import { Request, Response } from "express";
 
 const prisma = new PrismaClient();
 
+
+//RECHERCHE GLOBAL
+
 export const getAllUsers = async (req: Request, res: Response) => {
     try {
         const users = await prisma.user.findMany();
@@ -43,6 +46,9 @@ export const getAllInactiveUsers = async (req: Request, res: Response) => {
         }
     }
 };
+
+//RECHERCHE PAR ID 
+
 
 export const getUserById = async (req: Request, res: Response) => {
     const { id } = req.params;
@@ -101,6 +107,9 @@ export const getUserByInactiveId = async (req: Request, res: Response) => {
         }
     }
 };
+
+
+//RECHERCHE PAR USERNAME
 
 export const getUserByUsernameActive = async (req: Request, res: Response) => {
     const { username } = req.params;
@@ -183,6 +192,74 @@ export const getUserByUsername = async (req: Request, res: Response) => {
             res
                 .status(500)
                 .json({ error: "Error in getUserByUsername: " + error.message });
+        }
+    }
+};
+
+//BAN EST DEBAN USER PAR ID 
+
+//La fonction de ban est basic la mise en place des logs sera necessaire et donc 
+//ajustement pour avoir l'id de l'admin qui la ban
+export const banUserById = async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    try {
+        //si l'utilisateur existe
+        const existingUser = await prisma.user.findUnique({
+            where: { id: Number(id) }
+        });
+
+        if (!existingUser) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        //si l'utilisateur n'est actuellement pas déjà banni
+        if (existingUser.is_banned) {
+            return res.status(400).json({ message: "User is already banned" });
+        }
+
+        // Si l'utilisateur est trouvé et pas ban , le banni
+        const bannedUser = await prisma.user.update({
+            where: { id: Number(id) },
+            data: { is_banned: true }
+        });
+
+        res.status(200).json(bannedUser);
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            res.status(500).json({ error: "Error in banUserById: " + error.message });
+        }
+    }
+};
+
+export const debanUserById = async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    try {
+        //si l'utilisateur existe
+        const existingUser = await prisma.user.findUnique({
+            where: { id: Number(id) }
+        });
+
+        if (!existingUser) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        //si l'utilisateur est actuellement banni
+        if (!existingUser.is_banned) {
+            return res.status(400).json({ message: "User is not banned" });
+        }
+
+        // Si l'utilisateur est trouvé et banni, débanne
+        const unbannedUser = await prisma.user.update({
+            where: { id: Number(id) },
+            data: { is_banned: false }
+        });
+
+        res.status(200).json(unbannedUser);
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            res.status(500).json({ error: "Error in debanUserById: " + error.message });
         }
     }
 };
