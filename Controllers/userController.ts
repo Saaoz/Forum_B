@@ -263,3 +263,73 @@ export const debanUserById = async (req: Request, res: Response) => {
         }
     }
 };
+
+
+//MODO et UNMOD USER PAR ID 
+
+//La fonction de modo est basic la mise en place des logs sera necessaire et donc 
+//ajustement pour avoir l'id de l'admin qui la ban
+
+export const upAdminById = async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    try {
+        //si l'utilisateur existe
+        const existingUser = await prisma.user.findUnique({
+            where: { id: Number(id) }
+        });
+
+        if (!existingUser) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        //si l'utilisateur n'est actuellement pas déjà admin
+        if (existingUser.is_admin) {
+            return res.status(400).json({ message: "User is already admin" });
+        }
+
+        // Si l'utilisateur est trouvé et pas admin , le passe admin
+        const adminUser = await prisma.user.update({
+            where: { id: Number(id) },
+            data: { is_admin: true }
+        });
+
+        res.status(200).json(adminUser);
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            res.status(500).json({ error: "Error in upAdminById: " + error.message });
+        }
+    }
+};
+
+export const revokeAdminById = async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    try {
+        //si l'utilisateur existe
+        const existingUser = await prisma.user.findUnique({
+            where: { id: Number(id) }
+        });
+
+        if (!existingUser) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        //si l'utilisateur n'est actuellement pas admin
+        if (!existingUser.is_admin) {
+            return res.status(400).json({ message: "User is not admin" });
+        }
+
+        // Si l'utilisateur est trouvé et admin, unadmin
+        const unadminUser = await prisma.user.update({
+            where: { id: Number(id) },
+            data: { is_admin: false }
+        });
+
+        res.status(200).json(unadminUser);
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            res.status(500).json({ error: "Error in revokeAdminById: " + error.message });
+        }
+    }
+};
