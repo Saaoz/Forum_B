@@ -3,6 +3,7 @@ import cookieParser from 'cookie-parser';
 import { PrismaClient } from '@prisma/client';
 import indexRoutes from './Routes/indexRoute';
 import passport from './Config/passportConfig';
+// const crypto = require('crypto');
 
 // Prisma Client
 const prisma = new PrismaClient();
@@ -43,3 +44,11 @@ process.on('SIGINT', async () => {
     await prisma.$disconnect();
     process.exit();
 });
+
+
+// const generateSecret = () => {
+//   return crypto.randomBytes(**).toString('hex');
+// };
+
+// const secret = generateSecret();
+// console.log(secret);
