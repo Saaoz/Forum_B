@@ -1,5 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
+import bcrypt from 'bcrypt';
+import Joi from 'joi';
+import { UserData } from "../Config/types";
 
 const prisma = new PrismaClient();
 
@@ -330,6 +333,111 @@ export const revokeAdminById = async (req: Request, res: Response) => {
     } catch (error: unknown) {
         if (error instanceof Error) {
             res.status(500).json({ error: "Error in revokeAdminById: " + error.message });
+        }
+    }
+};
+
+
+// UPDATE PROFIL CREATE
+
+export const updateUserById = async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { username, password, avatar, bio } = req.body;
+
+    try {
+        const existingUser = await prisma.user.findUnique({
+            where: { id: Number(id) }
+        });
+
+        if (!existingUser) {
+            return res.status(404).json({ message: "User not found for update" });
+        }
+
+        let hashedPassword;
+        if (password) {
+            hashedPassword = await bcrypt.hash(password, 10);
+        }
+
+        const updatedUser = await prisma.user.update({
+            where: { id: Number(id) },
+            data: { 
+                username: username || existingUser.username,
+                password: hashedPassword || existingUser.password,
+                avatar: avatar || existingUser.avatar,
+                bio: bio || existingUser.bio
+            }
+        });
+
+        res.status(200).json(updatedUser);
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            res.status(500).json({ error: "Error in updateUserById: " + error.message });
+        }
+    }
+};
+
+// CREATE PROFIL
+
+export const createUser = async (req: Request, res: Response) => {
+    // Schéma de validation Joi
+    const schema = Joi.object({
+        username: Joi.string().alphanum().min(3).max(30).required(),
+        password: Joi.string().pattern(new RegExp('^[a-zA-Z0-9]{3,30}$')).required(),
+        email: Joi.string().email().required(),
+        avatar: Joi.string().uri().optional(),
+        bio: Joi.string().optional()
+    });
+
+    const { error, value } = schema.validate(req.body);
+
+    // Si la validation échoue, renvoyez une erreur
+    if (error) {
+        return res.status(400).json({ message: error.details[0].message });
+    }
+
+    const { username, password, email, avatar, bio } = value;
+
+    try {
+        // Vérifier l'unicité de l'email et du nom d'utilisateur
+        const existingUserByEmail = await prisma.user.findUnique({ where: { email } });
+        if (existingUserByEmail) {
+            return res.status(400).json({ message: "Email already in use" });
+        }
+
+        const existingUserByUsername = await prisma.user.findUnique({ where: { username } });
+        if (existingUserByUsername) {
+            return res.status(400).json({ message: "Username already in use" });
+        }
+
+        // Hacher le mot de passe
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Préparer l'objet de données pour la création de l'utilisateur
+        let userData: any = {
+            username,
+            email,
+            password: hashedPassword
+        };
+
+        // Ajouter avatar et bio seulement s'ils sont fournis
+        if (avatar) {
+            userData.avatar = avatar;
+        }
+        if (bio) {
+            userData.bio = bio;
+        }
+
+        // Créer l'utilisateur
+        const newUser = await prisma.user.create({
+            data: userData
+        });
+
+        res.status(201).json(newUser);
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            res.status(500).json({ error: "Error in createUser: " + error.message });
+        } else {
+            res.status(500).json({ error: "An unknown error occurred" });
         }
     }
 };
