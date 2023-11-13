@@ -1,5 +1,9 @@
 // schema.prisma
 
+//npx prisma migrate dev --name init
+
+// npx prisma db push
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,9 +15,9 @@ datasource db {
 
 model User {
   id              Int               @id @default(autoincrement())
-  username        String
-  password        String
-  email           String
+  username        String            @unique
+  password        String            
+  email           String            @unique //patch error email 
   date_registered DateTime
   last_login      DateTime?         // nullable field
   is_admin        Boolean           // TINYINT converted to Boolean

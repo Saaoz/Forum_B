@@ -1,10 +1,9 @@
 import express, { Application, Request, Response, NextFunction } from 'express';
 import cookieParser from 'cookie-parser';
-// import bcrypt from 'bcrypt';
-// import jwt from 'jsonwebtoken';
-// import passport from 'passport';
 import { PrismaClient } from '@prisma/client';
-import indexRoutes from './Routes/indexRoute'
+import indexRoutes from './Routes/indexRoute';
+import passport from './Config/passportConfig';
+// const crypto = require('crypto');
 
 // Prisma Client
 const prisma = new PrismaClient();
@@ -20,6 +19,8 @@ app.use(cookieParser());
 
 // Middleware pour parser le corps des requêtes JSON
 app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(passport.initialize());
 
 // Configuration de Passport (si vous utilisez des stratégies d'authentification)
 // À configurer selon vos besoins...
@@ -43,3 +44,11 @@ process.on('SIGINT', async () => {
     await prisma.$disconnect();
     process.exit();
 });
+
+
+// const generateSecret = () => {
+//   return crypto.randomBytes(**).toString('hex');
+// };
+
+// const secret = generateSecret();
+// console.log(secret);
