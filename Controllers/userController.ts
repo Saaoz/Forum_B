@@ -215,18 +215,15 @@ export const banUserById = async (req: Request, res: Response) => {
         if (!existingUser) {
             return res.status(404).json({ message: "User not found" });
         }
-
         //si l'utilisateur n'est actuellement pas déjà banni
         if (existingUser.is_banned) {
             return res.status(400).json({ message: "User is already banned" });
         }
-
         // Si l'utilisateur est trouvé et pas ban , le banni
         const bannedUser = await prisma.user.update({
             where: { id: Number(id) },
             data: { is_banned: true }
         });
-
         res.status(200).json(bannedUser);
     } catch (error: unknown) {
         if (error instanceof Error) {
@@ -243,22 +240,18 @@ export const debanUserById = async (req: Request, res: Response) => {
         const existingUser = await prisma.user.findUnique({
             where: { id: Number(id) }
         });
-
         if (!existingUser) {
             return res.status(404).json({ message: "User not found" });
         }
-
         //si l'utilisateur est actuellement banni
         if (!existingUser.is_banned) {
             return res.status(400).json({ message: "User is not banned" });
         }
-
         // Si l'utilisateur est trouvé et banni, débanne
         const unbannedUser = await prisma.user.update({
             where: { id: Number(id) },
             data: { is_banned: false }
         });
-
         res.status(200).json(unbannedUser);
     } catch (error: unknown) {
         if (error instanceof Error) {
@@ -281,22 +274,18 @@ export const upAdminById = async (req: Request, res: Response) => {
         const existingUser = await prisma.user.findUnique({
             where: { id: Number(id) }
         });
-
         if (!existingUser) {
             return res.status(404).json({ message: "User not found" });
         }
-
         //si l'utilisateur n'est actuellement pas déjà admin
         if (existingUser.is_admin) {
             return res.status(400).json({ message: "User is already admin" });
         }
-
         // Si l'utilisateur est trouvé et pas admin , le passe admin
         const adminUser = await prisma.user.update({
             where: { id: Number(id) },
             data: { is_admin: true }
         });
-
         res.status(200).json(adminUser);
     } catch (error: unknown) {
         if (error instanceof Error) {
@@ -313,22 +302,18 @@ export const revokeAdminById = async (req: Request, res: Response) => {
         const existingUser = await prisma.user.findUnique({
             where: { id: Number(id) }
         });
-
         if (!existingUser) {
             return res.status(404).json({ message: "User not found" });
         }
-
         //si l'utilisateur n'est actuellement pas admin
         if (!existingUser.is_admin) {
             return res.status(400).json({ message: "User is not admin" });
         }
-
         // Si l'utilisateur est trouvé et admin, unadmin
         const unadminUser = await prisma.user.update({
             where: { id: Number(id) },
             data: { is_admin: false }
         });
-
         res.status(200).json(unadminUser);
     } catch (error: unknown) {
         if (error instanceof Error) {
@@ -348,16 +333,13 @@ export const updateUserById = async (req: Request, res: Response) => {
         const existingUser = await prisma.user.findUnique({
             where: { id: Number(id) }
         });
-
         if (!existingUser) {
             return res.status(404).json({ message: "User not found for update" });
         }
-
         let hashedPassword;
         if (password) {
             hashedPassword = await bcrypt.hash(password, 10);
         }
-
         const updatedUser = await prisma.user.update({
             where: { id: Number(id) },
             data: { 
@@ -367,7 +349,6 @@ export const updateUserById = async (req: Request, res: Response) => {
                 bio: bio || existingUser.bio
             }
         });
-
         res.status(200).json(updatedUser);
     } catch (error: unknown) {
         if (error instanceof Error) {
@@ -387,38 +368,31 @@ export const createUser = async (req: Request, res: Response) => {
         avatar: Joi.string().uri().optional(),
         bio: Joi.string().optional()
     });
-
     const { error, value } = schema.validate(req.body);
 
     // Si la validation échoue, renvoyez une erreur
     if (error) {
         return res.status(400).json({ message: error.details[0].message });
     }
-
     const { username, password, email, avatar, bio } = value;
-
     try {
         // Vérifier l'unicité de l'email et du nom d'utilisateur
         const existingUserByEmail = await prisma.user.findUnique({ where: { email } });
         if (existingUserByEmail) {
             return res.status(400).json({ message: "Email already in use" });
         }
-
         const existingUserByUsername = await prisma.user.findUnique({ where: { username } });
         if (existingUserByUsername) {
             return res.status(400).json({ message: "Username already in use" });
         }
-
         // Hacher le mot de passe
         const hashedPassword = await bcrypt.hash(password, 10);
-
         // Préparer l'objet de données pour la création de l'utilisateur
         let userData: any = {
             username,
             email,
             password: hashedPassword
         };
-
         // Ajouter avatar et bio seulement s'ils sont fournis
         if (avatar) {
             userData.avatar = avatar;
@@ -426,12 +400,10 @@ export const createUser = async (req: Request, res: Response) => {
         if (bio) {
             userData.bio = bio;
         }
-
         // Créer l'utilisateur
         const newUser = await prisma.user.create({
             data: userData
         });
-
         res.status(201).json(newUser);
     } catch (error: unknown) {
         if (error instanceof Error) {
