@@ -2,7 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
 import bcrypt from 'bcrypt';
 import Joi from 'joi';
-import { UserData } from "../Config/types";
+
 
 const prisma = new PrismaClient();
 
