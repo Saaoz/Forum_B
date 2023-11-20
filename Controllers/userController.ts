@@ -10,8 +10,11 @@ const prisma = new PrismaClient();
 //RECHERCHE GLOBAL
 
 export const getAllUsers = async (req: Request, res: Response) => {
+    const { is_active } = req.body;
     try {
-        const users = await prisma.user.findMany();
+        const users = await prisma.user.findMany({
+            where: { is_active },
+        });
         res.status(200).json(users);
     } catch (error: unknown) {
         if (error instanceof Error) {
@@ -20,43 +23,16 @@ export const getAllUsers = async (req: Request, res: Response) => {
     }
 };
 
-export const getAllActiveUsers = async (req: Request, res: Response) => {
-    try {
-        const activeUsers = await prisma.user.findMany({
-            where: { is_active: true },
-        });
-        res.status(200).json(activeUsers);
-    } catch (error: unknown) {
-        if (error instanceof Error) {
-            res
-                .status(500)
-                .json({ error: "Error in getAllActiveUsers: " + error.message });
-        }
-    }
-};
-
-export const getAllInactiveUsers = async (req: Request, res: Response) => {
-    try {
-        const inactiveUsers = await prisma.user.findMany({
-            where: { is_active: false },
-        });
-        res.status(200).json(inactiveUsers);
-    } catch (error: unknown) {
-        if (error instanceof Error) {
-            res
-                .status(500)
-                .json({ error: "Error in getAllInactiveUsers: " + error.message });
-        }
-    }
-};
-
 //RECHERCHE PAR ID 
 
 
 export const getUserById = async (req: Request, res: Response) => {
+    const { is_active } = req.body;
     const { id } = req.params;
     try {
-        const user = await prisma.user.findUnique({ where: { id: Number(id) } });
+        const user = await prisma.user.findUnique({ 
+            where: { id: Number(id), is_active} 
+        });
         if (user) {
             res.json(user);
         } else {
@@ -69,62 +45,17 @@ export const getUserById = async (req: Request, res: Response) => {
     }
 };
 
-export const getUserByActiveId = async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const onlyActive = req.query.active === "true";
-    try {
-        const user = await prisma.user.findUnique({
-            where: { id: Number(id), ...(onlyActive && { is_active: true }) },
-        });
-        if (user) {
-            res.json(user);
-        } else {
-            res.status(404).json("Active user not found by ID");
-        }
-    } catch (error: unknown) {
-        if (error instanceof Error) {
-            res
-                .status(500)
-                .json({ error: "Error in getUserByActiveId: " + error.message });
-        }
-    }
-};
-
-export const getUserByInactiveId = async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const onlyInactive = req.query.active === "false";
-    try {
-        const user = await prisma.user.findUnique({
-            where: { id: Number(id), ...(onlyInactive && { is_active: false }) },
-        });
-        if (user) {
-            res.json(user);
-        } else {
-            res.status(404).json("Inactive user not found by ID");
-        }
-    } catch (error: unknown) {
-        if (error instanceof Error) {
-            res
-                .status(500)
-                .json({ error: "Error in getUserByInactiveId: " + error.message });
-        }
-    }
-};
-
 
 //RECHERCHE PAR USERNAME
 
-export const getUserByUsernameActive = async (req: Request, res: Response) => {
+export const getUserByUsername = async (req: Request, res: Response) => {
+    const { is_active } = req.body;
     const { username } = req.params;
-    const onlyActive = req.query.active === "true";
+    
 
     try {
         // Construction dynamique de l'objet where
-        let whereClause: { username: string; is_active?: boolean } = { username };
-
-        if (onlyActive) {
-            whereClause.is_active = true;
-        }
+        let whereClause: { username: string; is_active?: boolean } = { username, is_active };
 
         const users = await prisma.user.findMany({
             where: whereClause,
@@ -140,61 +71,6 @@ export const getUserByUsernameActive = async (req: Request, res: Response) => {
             res
                 .status(500)
                 .json({ error: "Error in getUserByUsernameActive: " + error.message });
-        }
-    }
-};
-
-export const getUserByUsernameInactive = async (req: Request, res: Response) => {
-    const { username } = req.params;
-    const onlyInactive = req.query.active === "false";
-
-    try {
-        // Construction dynamique de l'objet where
-        let whereClause: { username: string; is_active?: boolean } = { username };
-
-        if (onlyInactive) {
-            whereClause.is_active = false;
-        }
-
-        const users = await prisma.user.findMany({
-            where: whereClause,
-        });
-
-        if (users.length > 0) {
-            res.json(users);
-        } else {
-            res.status(404).json("No inactive users found with the given username");
-        }
-    } catch (error: unknown) {
-        if (error instanceof Error) {
-            res
-                .status(500)
-                .json({ error: "Error in getUserByUsernameInactive: " + error.message });
-        }
-    }
-};
-
-export const getUserByUsername = async (req: Request, res: Response) => {
-    const { username } = req.params;
-
-    try {
-        // Construction dynamique de l'objet where
-        let whereClause: { username: string; } = { username };
-
-        const users = await prisma.user.findMany({
-            where: whereClause,
-        });
-
-        if (users.length > 0) {
-            res.json(users);
-        } else {
-            res.status(404).json("No users found with the given username");
-        }
-    } catch (error: unknown) {
-        if (error instanceof Error) {
-            res
-                .status(500)
-                .json({ error: "Error in getUserByUsername: " + error.message });
         }
     }
 };
