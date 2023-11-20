@@ -38,21 +38,23 @@ model User {
 }
 
 model Category {
-  id          Int     @id @default(autoincrement())
-  name        String
+  id          Int             @id @default(autoincrement())
+  name        String          @unique
   description String?
+  is_active    Boolean         @default(true)
   topics      Topic[]
 }
 
 model Topic {
   id          Int            @id @default(autoincrement())
-  title       String
+  title       String          
   description String?
   createdBy   Int            // Foreign key
   dateCreated DateTime
   categoryId  Int            // Foreign key
-  isPinned    Boolean        // TINYINT converted to Boolean
-  isClosed    Boolean        // TINYINT converted to Boolean
+  is_pinned    Boolean        // TINYINT converted to Boolean
+  is_closed    Boolean        // TINYINT converted to Boolean
+  is_active    Boolean       @default(true)
   category    Category       @relation(fields: [categoryId], references: [id])
   creator     User           @relation(fields: [createdBy], references: [id])
   replies     Reply[]
@@ -103,7 +105,7 @@ model ChatMessage {
   content  String
   sentBy   Int       // Foreign key
   dateSent DateTime
-  isRead   Boolean   // TINYINT converted to Boolean
+  is_read   Boolean   // TINYINT converted to Boolean
   chat     Chat      @relation(fields: [chatId], references: [id])
   sender   User      @relation(fields: [sentBy], references: [id])
 }
@@ -113,7 +115,7 @@ model UserNotification {
   userId      Int      // Foreign key
   content     String
   dateCreated DateTime
-  isRead      Boolean  // TINYINT converted to Boolean
+  is_read      Boolean  // TINYINT converted to Boolean
   user        User     @relation(fields: [userId], references: [id])
 }
 
@@ -128,7 +130,7 @@ model ModerationLog {
 
 model Tag {
   id       Int       @id @default(autoincrement())
-  name     String
+  name     String    @unique
   topics   Topic[]   @relation("TopicTag")
   topicTags  TopicTag[]  // Ceci est le champ de relation inverse pour Tag
 }

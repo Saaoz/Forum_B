@@ -1,13 +1,10 @@
-// prisma/seed.js
-// commande : npx prisma db seed npx prisma studio
-
 import { PrismaClient } from '@prisma/client';
 import { hash } from 'bcrypt';
 
 const prisma = new PrismaClient();
 
-//clean database
-async function cleanDatabase() {
+async function main() {
+    // Nettoyage de la base de données
     await prisma.reply.deleteMany({});
     await prisma.topicTag.deleteMany({});
     await prisma.userFavorite.deleteMany({});
@@ -16,13 +13,9 @@ async function cleanDatabase() {
     await prisma.tag.deleteMany({});
     await prisma.category.deleteMany({});
     await prisma.user.deleteMany({});
-}
 
-
-async function main() {
-    await cleanDatabase();
-    // Users
-    const password = await hash('password', 10); // Hachage d'un mot de passe pour tous les utilisateurs
+    // Création des utilisateurs
+    const password = await hash('password', 10);
     const users = await Promise.all(
         [...Array(5)].map(async (_, i) =>
             prisma.user.create({
@@ -39,52 +32,52 @@ async function main() {
         )
     );
 
-    // Categories
-    const categories = await prisma.category.create({
+    // Création d'une catégorie
+    const category = await prisma.category.create({
         data: {
             name: 'General Discussion',
             description: 'A place to chat about everything',
         },
     });
 
-    // Topics and Replies
+    // Création des tags uniques
+    const tags = await Promise.all(
+        [...Array(5)].map(async (_, i) =>
+            prisma.tag.create({
+                data: {
+                    name: `Tag${i}`,
+                },
+            })
+        )
+    );
+
+    // Création des topics et des réponses pour chaque utilisateur
     for (const user of users) {
-        // Create a new topic for each user
         const topic = await prisma.topic.create({
             data: {
                 title: `Topic by ${user.username}`,
                 description: `A fascinating topic by ${user.username}`,
                 createdBy: user.id,
                 dateCreated: new Date(),
-                categoryId: categories.id,
-                isPinned: false,
-                isClosed: false,
-                // tags here, we will do it in the next step
+                categoryId: category.id,
+                is_pinned: false,
+                is_closed: false,
+                is_active: true,
             },
         });
 
-        // Create a new tag and associate it with the topic via the TopicTag table
-        const tags = await Promise.all(
-            [...Array(5)].map(async (_, i) =>
-                prisma.tag.create({
-                    data: {
-                        name: `tag${i + 1}`,
-                    },
-                })
-            )
-        );
-
-        for (const tag of tags) {
+        // Association des tags au topic
+        tags.forEach(async tag => {
             await prisma.topicTag.create({
                 data: {
                     topicId: topic.id,
                     tagId: tag.id,
-                    createdAt: new Date()
-                }
-            })
-        }
+                    createdAt: new Date(),
+                },
+            });
+        });
 
-        // Create a reply for the created topic
+        // Création d'une réponse pour le topic
         await prisma.reply.create({
             data: {
                 content: `Reply to ${topic.title}`,
@@ -95,34 +88,30 @@ async function main() {
         });
     }
 
-    // UserFavorites
-    // Assume every user favorites the first topic
+    // Création des favoris et des amitiés
     const firstTopic = await prisma.topic.findFirst();
     if (firstTopic) {
-        for (const user of users) {
+        users.forEach(async user => {
             await prisma.userFavorite.create({
                 data: {
                     userId: user.id,
                     topicId: firstTopic.id,
                 },
             });
+        });
+
+        for (let i = 0; i < users.length; i++) {
+            for (let j = i + 1; j < users.length; j++) {
+                await prisma.friendship.create({
+                    data: {
+                        userId1: users[i].id,
+                        userId2: users[j].id,
+                        status: 'FRIENDS',
+                    },
+                });
+            }
         }
     }
-
-    // Friendships
-    // Establishing a friendship relation between each pair of users
-    for (let i = 0; i < users.length; i++) {
-        for (let j = i + 1; j < users.length; j++) {
-            await prisma.friendship.create({
-                data: {
-                    userId1: users[i].id,
-                    userId2: users[j].id,
-                    status: 'FRIENDS',
-                },
-            });
-        }
-    }
-
 }
 
 main()
