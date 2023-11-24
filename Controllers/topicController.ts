@@ -1,22 +1,215 @@
 import { PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
+import Joi, { any, bool, boolean, number, string } from "joi";
 
 const prisma = new PrismaClient();
 
-
-
 //getAllTopic avec filtre
+
+export const getAllTopics = async (req: Request, res:Response) => {
+    const {is_active} = req.body;
+    try{
+        const topics = await prisma.topic.findMany({
+            where: {is_active},
+        });
+        res.status(200).json(topics);
+    } catch ( error: unknown) {
+        if (error instanceof Error) {
+            res.status(500).json({ error: "Error in GetAllTopics" + error.message });
+        }
+    }
+};
+
 
 //getAllTopicById avec filtre
 
+export const getAllTopicsById = async (req: Request, res: Response) => {
+    const { is_active } = req.body;
+    const { id } = req.params;
+    try {
+        const topics = await prisma.topic.findUnique({ 
+            where: { id: Number(id), is_active} 
+        });
+        if (topics) {
+            res.json(topics);
+        } else {
+            res.status(404).json("topics not found by ID");
+        }
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            res.status(500).json({ error: "Error in getAllTopicById: " + error.message });
+        }
+    }
+};
+
 //getAllTopicByTitle avec filtre
+
+export const getAllTopicByTitle = async (req: Request, res: Response) => {
+    const { is_active } = req.body;
+    const { title } = req.params;
+    
+    try {
+        const topics = await prisma.topic.findMany({
+            where: { title ,
+                    is_active
+                },
+        });
+
+        if (topics.length > 0) {
+            res.json(topics);
+        } else {
+            res.status(404).json("No active topics found with the given title");
+        }
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            res
+                .status(500)
+                .json({ error: "Error in getAllTopicByTitle: " + error.message });
+        }
+    }
+};
 
 //getAllTopicByCategoryId avec filtre
 
-//getAllTopicByCreatedUsername
+export const getAllTopicByCategoryId = async (req: Request, res: Response) => {
+    const { categoryId } = req.params; 
+    const { is_active } = req.body;
 
+    try {
+        // Convertir categoryId en nombre et vérifier si la catégorie existe
+        const categoryExists = await prisma.category.findUnique({
+            where: { id: parseInt(categoryId) },
+        });
+
+        if (!categoryExists) {
+            return res.status(404).json({ message: "Category not found" });
+        }
+
+        const topics = await prisma.topic.findMany({
+            where: {
+                categoryId: parseInt(categoryId),
+                is_active, 
+            }
+        });
+
+        if (!topics) {
+            return res.status(404).json("No topics found for the given category");
+        } 
+            return res.json(topics);
+
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            res.status(500).json({ error: "Error in getAllTopicByCategoryId: " + error.message });
+        }
+    }
+};
+
+//getAllTopicByCreatedId
+
+export const getAllTopicByCreatedId = async (req: Request, res: Response) => {
+    const { createdBy } = req.params; 
+    const { is_active } = req.body;
+    try {
+        // Convertir categoryId en nombre et vérifier si la catégorie existe
+        const categoryExists = await prisma.user.findUnique({
+            where: { id: parseInt(createdBy) },
+        });
+
+        if (!categoryExists) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        const topics = await prisma.topic.findMany({
+            where: {
+                createdBy: parseInt(createdBy),
+                is_active,
+            }
+            // where: {
+            //     AND:[
+            //         {
+            //             createdBy: parseInt(createdBy), 
+            //         },
+            //         {
+            //             is_active, 
+            //         }
+
+            //     ]
+              
+            // }
+        });
+
+        if (!topics) {
+            return res.status(404).json("No topics found for the given category");
+        } 
+            return res.json(topics);
+
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            res.status(500).json({ error: "Error in getAllTopicByCreatedId: " + error.message });
+        }
+    }
+};
 
 //createTopic
+
+export const createTopic = async (req: Request, res:Response) => {
+    const blueprint = Joi.object({
+        title: Joi.string().alphanum().min(3).max(30).required(),
+        description: Joi.string().optional(),
+        createdBy: Joi.number().required(),
+        categoryId: Joi.number().required(),
+        is_active: Joi.boolean().required(), 
+    });
+
+    const { error, value } = blueprint.validate(req.body);
+
+    if (error) {
+        return res.status(400).json({ message: error.details[0].message });
+    }
+
+    const { title, description, createdBy, categoryId, is_active } = value;
+
+    try {
+        const existingUser = await prisma.user.findUnique({
+            where: { id: createdBy },
+        });
+        if (!existingUser) {
+            return res.status(400).json({ message: "User doesn't exist with this id " });
+        }
+
+        const existingCategory = await prisma.category.findUnique({
+            where: { id: categoryId }
+        });
+        if (!existingCategory) {
+            return res.status(400).json({ message: "Category doesn't exist with this id " });
+        }
+
+        const existingTopic = await prisma.topic.findUnique({
+            where: { title },
+        });
+        if (existingTopic) {
+            return res.status(400).json({ message: "Title already used" });
+        }
+
+        const newTopic = await prisma.topic.create({
+            data: {
+                title,
+                description,
+                createdBy,
+                categoryId,
+                is_active,
+            },
+        });
+        res.status(201).json(newTopic);
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            res.status(500).json({ error: "Error in createTopic: " + error.message });
+        } else {
+            res.status(500).json({ error: "An unknown error occurred in createTopic" });
+        }
+    }
+};
+
 
 //updateTopic
 
@@ -25,7 +218,6 @@ const prisma = new PrismaClient();
 //PARTIE REPLIES 
 
 //getAllRepliesFromTopic
-
 
 
 //Nombre Total de Réponses par Topic
@@ -53,7 +245,8 @@ const prisma = new PrismaClient();
 // };
 
 
-// //Statistiques sur les Utilisateurs Actifs
+// //Statistiques sur les Utilisateurs Actifs  
+//Topic reply (point faire une base de 50 point avec point a gagner sur réponse ou recommendation)
 
 // export const getTopContributors = async () => {
 //     const users = await prisma.user.findMany({
