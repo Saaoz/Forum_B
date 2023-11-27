@@ -19,6 +19,6 @@ router.patch('/:id/admin', upAdminById);
 router.patch('/:id/unadmin', revokeAdminById);
 
 router.patch('/:id/update', updateUserById);
-router.patch('/create', createUser);
+router.post('/create', createUser);
 
 export default router;
