@@ -1,3 +1,17 @@
 //PARTIE REPLIES
 
-//getAllRepliesFromTopic
+//getAllReplies
+
+//getAllRepliesFromTopicTitle
+
+//getAllRepliesFromTopicId
+
+//getAllRepliesFromUserId
+
+//getAllRepliesFromUsername
+
+//createRepliesForTopic
+
+//updateReplies
+
+//toggleRepliesActiveState
