@@ -98,7 +98,7 @@ export const createCategory = async (req: Request, res: Response) => {
   try {
     // Vérifier l'unicité du name
     const existingCategoryByName = await prisma.category.findUnique({
-      where: { name },
+      where: { name, is_active },
     });
     if (existingCategoryByName) {
       return res.status(400).json({ message: "Name already in use" });
