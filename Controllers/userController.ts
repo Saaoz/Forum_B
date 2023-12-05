@@ -233,7 +233,7 @@ export const updateUserById = async (req: Request, res: Response) => {
     }
 };
 
-// CREATE PROFIL
+// CREATE PROFIL A BOUGER DANS AUTH
 
 export const createUser = async (req: Request, res: Response) => {
     // Schéma de validation Joi
@@ -289,3 +289,7 @@ export const createUser = async (req: Request, res: Response) => {
         }
     }
 };
+
+//FONCTION BANNED ACCOUNT DONC PASSAGE REPLY EN INACTIVE
+
+//FONCTION DELETE ACCOUNT FROM USER DONC REPLY EN INACTIVE
