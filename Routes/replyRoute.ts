@@ -1,26 +1,26 @@
 import express from 'express';
 
-import { getAllReplies, getAllRepliesFromTopicTitle } from '../Controllers/replyController';
+import { createReplyForTopic, getAllReply, getAllReplyFromTopicId, getAllReplyFromTopicTitle, getAllReplyFromUserId, updateReply } from '../Controllers/replyController';
 
 const router = express.Router();
 
 
 
 
- router.get('/', getAllReplies);
+ router.get('/', getAllReply);
 
-// router.get('/:id', getTopicsById);
+router.get('/topic/:title', getAllReplyFromTopicTitle);
 
-router.get('/:title', getAllRepliesFromTopicTitle);
+router.get('/topic/:id', getAllReplyFromTopicId)
 
+router.get('/user/:id', getAllReplyFromUserId)
 
-// router.get('/topic_category/:categoryId', getAllTopicByCategoryId);
+router.post('/topic/:id/create', createReplyForTopic)
 
-// router.get('/topic_user/:createdBy', getAllTopicByCreatedId)
+router.patch('/:id/update', updateReply )
 
-// router.post('/create', createTopic);
+router.patch('/:id/switch_state')
 
-// router.patch('/:id/update', updateTopicById);
 
 
 
