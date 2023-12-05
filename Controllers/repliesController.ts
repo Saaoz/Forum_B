@@ -1,3 +1,0 @@
-//PARTIE REPLIES
-
-//getAllRepliesFromTopic

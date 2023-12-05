@@ -69,6 +69,7 @@ model Reply {
   createdBy   Int       // Foreign key
   topicId     Int       // Foreign key
   dateCreated DateTime
+  is_active   Boolean
   creator     User      @relation(fields: [createdBy], references: [id])
   topic       Topic     @relation(fields: [topicId], references: [id])
 }
