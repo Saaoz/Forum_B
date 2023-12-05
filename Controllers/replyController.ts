@@ -293,19 +293,28 @@ export const toggleReplyActiveState = async (req: Request, res: Response) => {
   const { id } = req.params;
 
   try {
-    const existingReply = await prisma.reply.findUnique({
+    const reply = await prisma.reply.findUnique({
       where: { id: Number(id) },
     });
 
-    if (!existingReply) {
+    if (!reply) {
       return res.status(400).json({ message: "Reply not found" })
     }
     
+    const updatedReply = await prisma.reply.update({
+      where: { id: Number(id) },
+      data: { is_active: !reply.is_active }
+    })
+    res.status(200).json(updatedReply)
   } catch (error) {
     if (error instanceof Error) {
       res
         .status(500)
-        .json({ error: "Error in toggleReplyActiveState: " + error.message });
+        .json({
+          error: "Error in toggleReplyActiveState: " + error.message,
+        });
+    } else {
+      res.status(500).json({ error: "An unknown error occurred" });
     }
   }
 };
