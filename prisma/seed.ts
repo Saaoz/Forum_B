@@ -1,6 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import { hash } from 'bcrypt';
 
+//npx prisma db seed
+
 const prisma = new PrismaClient();
 
 async function main() {
@@ -83,6 +85,7 @@ async function main() {
                 content: `Reply to ${topic.title}`,
                 createdBy: user.id,
                 topicId: topic.id,
+                is_active: true,
                 dateCreated: new Date(),
             },
         });
