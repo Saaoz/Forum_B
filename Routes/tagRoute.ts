@@ -1,27 +1,21 @@
 import express from 'express';
 
-import {  } from '../Controllers/tagController';
+import { CreateTag, UpdateTag, addTagtoTopic, deleteTagFromTopic, getAllTag, getAllTagFromTopic, getTop20Tags } from '../Controllers/tagController';
 
 const router = express.Router();
 
+router.get('/', getAllTag);
 
+router.get('/topic/:topicId', getAllTagFromTopic);
 
+router.get('/top20', getTop20Tags);
 
-//  router.get('/', getAllReply);
+router.post('/topic/:topicId/tag/:tagId/add', addTagtoTopic);
 
-// router.get('/topic/:title', getAllReplyFromTopicTitle);
+router.delete('/topic/:topicId/tag/:tagId/delete', deleteTagFromTopic);
 
-// router.get('/topic/:id', getAllReplyFromTopicId)
+router.patch('/:id/update', UpdateTag);
 
-// router.get('/user/:id', getAllReplyFromUserId)
-
-// router.post('/topic/:id/create', createReplyForTopic)
-
-// router.patch('/:id/update', updateReply )
-
-// router.patch('/:id/switch_state')
-
-
-
+router.post('/create', CreateTag);
 
 export default router;
