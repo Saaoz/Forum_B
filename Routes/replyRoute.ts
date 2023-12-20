@@ -1,6 +1,6 @@
 import express from 'express';
 
-import { createReplyForTopic, getAllReply, getAllReplyFromTopicId, getAllReplyFromTopicTitle, getAllReplyFromUserId, updateReply } from '../Controllers/replyController';
+import { createReplyForTopic, getAllReply, getAllReplyFromTopicId, getAllReplyFromTopicTitle, getAllReplyFromUserId, toggleReplyActiveState, updateReply } from '../Controllers/replyController';
 
 const router = express.Router();
 
@@ -19,7 +19,7 @@ router.post('/topic/:id/create', createReplyForTopic)
 
 router.patch('/:id/update', updateReply )
 
-router.patch('/:id/switch_state')
+router.patch('/:id/switch_state', toggleReplyActiveState)
 
 
 
