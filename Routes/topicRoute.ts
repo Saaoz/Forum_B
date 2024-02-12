@@ -14,8 +14,7 @@ router.get('/', getAllTopics);
 
 router.get('/:id', getTopicsById);
 
-router.get('/:title', getAllTopicByTitle);
-
+router.post('/:title', getAllTopicByTitle); 
 
 router.get('/topic_category/:categoryId', getAllTopicByCategoryId);
 
