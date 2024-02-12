@@ -47,11 +47,21 @@ export const getTopicsById = async (req: Request, res: Response) => {
 
 export const getAllTopicByTitle = async (req: Request, res: Response) => {
   const { is_active } = req.body;
-  const { title } = req.params;
+  const { searchTerm } = req.params;
 
   try {
     const topics = await prisma.topic.findMany({
-      where: { title, is_active },
+      where: {
+        AND: [ // AND pour s'assurer que tous les critères sont respectés
+          {
+            title: {
+              contains: searchTerm as string},
+          },
+          {
+            is_active: is_active, 
+          },
+        ],
+      },
     });
 
     if (topics.length > 0) {
@@ -190,12 +200,15 @@ export const createTopic = async (req: Request, res: Response) => {
         .json({ message: "Category doesn't exist with this id " });
     }
 
-    // Vérification de l'unicité du titre
-    const existingTopic = await prisma.topic.findUnique({
-      where: { title },
+    // Recherche d'un topic existant avec le même titre
+    const existingTopic = await prisma.topic.findFirst({
+      where: {
+        title: title,
+        categoryId: categoryId, // S'assurer que le titre est unique dans la même catégorie
+      },
     });
     if (existingTopic) {
-      return res.status(400).json({ message: "Title already used" });
+      return res.status(400).json({ message: "Title already used in this category." });
     }
     let topicData: any = {
       title: string,

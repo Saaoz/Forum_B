@@ -47,8 +47,9 @@ export const getAllReplyFromTopicTitle = async (
 ) => {
   const { is_active } = req.body;
   const { title } = req.params;
+
   try {
-    const existingTopicFromTitle = await prisma.topic.findUnique({
+    const existingTopicFromTitle = await prisma.topic.findMany({
       where: { title },
     });
     if (!existingTopicFromTitle) {
@@ -56,7 +57,7 @@ export const getAllReplyFromTopicTitle = async (
         .status(400)
         .json({ message: "Topic with this title was not found" });
     }
-
+    
     const Reply = await prisma.reply.findMany({
       where: {
         is_active,
