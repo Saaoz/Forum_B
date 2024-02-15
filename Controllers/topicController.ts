@@ -7,6 +7,7 @@ const prisma = new PrismaClient();
 //getAllTopic avec filtre
 
 export const getAllTopics = async (req: Request, res: Response) => {
+  // console.log("getAllTopics function called");
   const { is_active } = req.body;
   try {
     const topics = await prisma.topic.findMany({
@@ -23,6 +24,7 @@ export const getAllTopics = async (req: Request, res: Response) => {
 //getTopicById avec filtre
 
 export const getTopicsById = async (req: Request, res: Response) => {
+// console.log("getTopicsById function called");
   const { is_active } = req.body;
   const { id } = req.params;
   try {
@@ -46,6 +48,7 @@ export const getTopicsById = async (req: Request, res: Response) => {
 //getAllTopicByTitle avec filtre
 
 export const getAllTopicByTitle = async (req: Request, res: Response) => {
+  // console.log("getAllTopicByTitle function called");
   const { is_active } = req.body;
   const { searchTerm } = req.params;
 
@@ -81,6 +84,7 @@ export const getAllTopicByTitle = async (req: Request, res: Response) => {
 //getAllTopicByCategoryId avec filtre
 
 export const getAllTopicByCategoryId = async (req: Request, res: Response) => {
+  // console.log("getAllTopicByCategoryId function called");
   const { categoryId } = req.params;
   const { is_active } = req.body;
 
@@ -117,6 +121,7 @@ export const getAllTopicByCategoryId = async (req: Request, res: Response) => {
 //getAllTopicByCreatedId
 
 export const getAllTopicByCreatedId = async (req: Request, res: Response) => {
+  // console.log("getAllTopicByCreatedId function called");
   const { createdBy } = req.params;
   const { is_active } = req.body;
   try {
@@ -134,18 +139,6 @@ export const getAllTopicByCreatedId = async (req: Request, res: Response) => {
         createdBy: parseInt(createdBy),
         is_active,
       },
-      // where: {
-      //     AND:[
-      //         {
-      //             createdBy: parseInt(createdBy),
-      //         },
-      //         {
-      //             is_active,
-      //         }
-
-      //     ]
-
-      // }
     });
 
     if (!topics) {
@@ -161,11 +154,12 @@ export const getAllTopicByCreatedId = async (req: Request, res: Response) => {
   }
 };
 
-//createTopic
+// createTopic
 
 export const createTopic = async (req: Request, res: Response) => {
+  // console.log("createTopic function called");
   const blueprint = Joi.object({
-    title: Joi.string().alphanum().min(3).max(30).required(),
+    title: Joi.string().min(3).max(30).required(),
     description: Joi.string().optional(),
     createdBy: Joi.number().required(),
     categoryId: Joi.number().required(),
@@ -175,73 +169,81 @@ export const createTopic = async (req: Request, res: Response) => {
   const { error, value } = blueprint.validate(req.body);
 
   if (error) {
+    console.log("Validation error:", error.details[0].message);
     return res.status(400).json({ message: error.details[0].message });
   }
 
   const { title, description, createdBy, categoryId, is_active } = value;
 
+  console.log("Request to create topic with:", value); // Affichage des valeurs reçues pour vérification
+
   try {
-    // Vérification de l'existence de l'utilisateur et de la catégorie
     const existingUser = await prisma.user.findUnique({
       where: { id: createdBy },
     });
+
+    console.log("Existing user:", existingUser); // Confirmation de la récupération de l'utilisateur
+
     if (!existingUser) {
-      return res
-        .status(400)
-        .json({ message: "User doesn't exist with this id " });
+      console.log("No user found with id:", createdBy);
+      return res.status(400).json({ message: "User doesn't exist with this id." });
     }
 
     const existingCategory = await prisma.category.findUnique({
       where: { id: categoryId },
     });
+
+    console.log("Existing category:", existingCategory); // Confirmation de la récupération de la catégorie
+
     if (!existingCategory) {
-      return res
-        .status(400)
-        .json({ message: "Category doesn't exist with this id " });
+      console.log("No category found with id:", categoryId);
+      return res.status(400).json({ message: "Category doesn't exist with this id." });
     }
 
-    // Recherche d'un topic existant avec le même titre
     const existingTopic = await prisma.topic.findFirst({
       where: {
-        title: title,
-        categoryId: categoryId, // S'assurer que le titre est unique dans la même catégorie
+        title,
+        categoryId, // Assure que le titre est unique dans la catégorie spécifiée
       },
     });
+
+    console.log("Existing topic with the same title in this category:", existingTopic); // Vérification de l'unicité du titre dans la catégorie
+
     if (existingTopic) {
       return res.status(400).json({ message: "Title already used in this category." });
     }
-    let topicData: any = {
-      title: string,
-      description: string,
-      createdBy: number,
-      categoryId: number,
-      is_active: boolean,
-    };
-    if (description) {
-      topicData.description = description;
-    }
 
-    // Création du topic
+    // Ajout de la date de création actuelle au topicData
+    const topicData: any = {
+      title,
+      description,
+      createdBy,
+      categoryId,
+      is_active
+    };
+
     const newTopic = await prisma.topic.create({
       data: topicData,
     });
+
+    console.log("New topic created:", newTopic); // Confirmation de la création du topic
+
     res.status(201).json(newTopic);
   } catch (error) {
     if (error instanceof Error) {
-      res.status(500).json({ error: "Error in createTopic: " + error.message });
-    } else {
-      res
-        .status(500)
-        .json({ error: "An unknown error occurred in createTopic" });
-    }
+    console.error("Error in createTopic:", error); // Affichage de l'erreur
+    res.status(500).json({ error: "Error in createTopic: " + error.message });
   }
+}
 };
+
 
 //updateTopic
 
 export const updateTopicById = async (req: Request, res:Response) => {
+  // console.log("updateTopicById function called");
   const { id } = req.params;
-  const { title, description, is_active } = req.body
+  const { title, description, is_active, is_pinned, is_closed } = req.body
 
   try {
     const existingTopic = await prisma.topic.findUnique({
@@ -254,9 +256,11 @@ export const updateTopicById = async (req: Request, res:Response) => {
     const updatedTopic = await prisma.topic.update({
       where: { id: Number(id) },
       data: {
-        title: title || existingTopic.title,
-        description: description || existingTopic.description,
-        is_active: is_active || existingTopic.is_active,
+        title: title !==undefined ? title : existingTopic.title,
+        description: description !==undefined ? description: existingTopic.description,
+        is_active: is_active !==undefined ? is_active: existingTopic.is_active,
+        is_pinned: is_pinned !==undefined ? is_pinned: existingTopic.is_pinned,
+        is_closed: is_closed !==undefined ? is_closed: existingTopic.is_closed,
       },
     });
     res.status(200).json(updatedTopic);
