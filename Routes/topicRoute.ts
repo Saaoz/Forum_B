@@ -1,29 +1,20 @@
 import express from 'express';
-
 import { 
     createTopic,
     getAllTopicByCategoryId, getAllTopicByCreatedId, getAllTopicByTitle, getAllTopics, getTopicsById, updateTopicById 
-    } from '../Controllers/topicController';
+} from '../Controllers/topicController';
 
 const router = express.Router();
 
-
-
-
-router.get('/', getAllTopics);
-
-router.get('/:id', getTopicsById);
-
-router.post('/:title', getAllTopicByTitle); 
-
-router.get('/topic_category/:categoryId', getAllTopicByCategoryId);
-
-router.get('/topic_user/:createdBy', getAllTopicByCreatedId)
-
+// Placez les routes spécifiques en premier
 router.post('/create', createTopic);
+router.get('/topic_category/:categoryId', getAllTopicByCategoryId);
+router.get('/topic_user/:createdBy', getAllTopicByCreatedId);
+router.post('/:title', getAllTopicByTitle); // Considérez de changer 'post' en 'get' si cette route est destinée à récupérer des données
 
+// Ensuite, les routes plus génériques
+router.get('/', getAllTopics);
+router.get('/:id', getTopicsById);
 router.patch('/:id/update', updateTopicById);
-
-
 
 export default router;
