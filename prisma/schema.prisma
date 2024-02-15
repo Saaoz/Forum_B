@@ -14,109 +14,109 @@ datasource db {
 }
 
 model User {
-  id              Int               @id @default(autoincrement())
-  username        String            @unique
-  password        String            
-  email           String            @unique //patch error email 
+  id              Int                @id @default(autoincrement())
+  username        String             @unique
+  password        String
+  email           String             @unique //patch error email 
   date_registered DateTime
-  last_login      DateTime?         // nullable field
-  is_admin        Boolean           // TINYINT converted to Boolean
-  is_banned       Boolean           // TINYINT converted to Boolean
-  is_active       Boolean           // TINYINT converted to Boolean
-  avatar          String?           // nullable field
-  bio             String?           // nullable field
-  createdTopics   Topic[]           // Relation field
-  replies         Reply[]           // Relation field
-  userFavorites   UserFavorite[]    // Relation field
-  friendships1    Friendship[]      @relation("FriendshipUser1") // Relation inverse pour user1
-  friendships2    Friendship[]      @relation("FriendshipUser2") // Relation inverse pour user2
-  chats1          Chat[]            @relation("chatsUser1")
-  chats2          Chat[]            @relation("chatsUser2")
-  sentMessages    ChatMessage[]     // Relation field
-  notifications   UserNotification[]// Relation field
-  moderationLogs  ModerationLog[]   // Relation field
+  last_login      DateTime? // nullable field
+  is_admin        Boolean // TINYINT converted to Boolean
+  is_banned       Boolean // TINYINT converted to Boolean
+  is_active       Boolean // TINYINT converted to Boolean
+  avatar          String? // nullable field
+  bio             String? // nullable field
+  createdTopics   Topic[] // Relation field
+  replies         Reply[] // Relation field
+  userFavorites   UserFavorite[] // Relation field
+  friendships1    Friendship[]       @relation("FriendshipUser1") // Relation inverse pour user1
+  friendships2    Friendship[]       @relation("FriendshipUser2") // Relation inverse pour user2
+  chats1          Chat[]             @relation("chatsUser1")
+  chats2          Chat[]             @relation("chatsUser2")
+  sentMessages    ChatMessage[] // Relation field
+  notifications   UserNotification[] // Relation field
+  moderationLogs  ModerationLog[] // Relation field
 }
 
 model Category {
-  id          Int             @id @default(autoincrement())
-  name        String          @unique
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
   description String?
-  is_active    Boolean         @default(true)
+  is_active   Boolean @default(true)
   topics      Topic[]
 }
 
 model Topic {
-  id          Int            @id @default(autoincrement())
-  title       String         
-  description String?
-  createdBy   Int            // Foreign key
-  dateCreated DateTime
-  categoryId  Int            // Foreign key
-  is_pinned    Boolean        // TINYINT converted to Boolean
-  is_closed    Boolean        // TINYINT converted to Boolean
-  is_active    Boolean       @default(true)
-  category    Category       @relation(fields: [categoryId], references: [id])
-  creator     User           @relation(fields: [createdBy], references: [id])
-  replies     Reply[]
+  id            Int            @id @default(autoincrement())
+  title         String
+  description   String?
+  createdBy     Int // Foreign key
+  dateCreated   DateTime       @default(now())
+  categoryId    Int // Foreign key
+  is_pinned     Boolean        @default(false) // TINYINT converted to Boolean
+  is_closed     Boolean        @default(false) // TINYINT converted to Boolean
+  is_active     Boolean        @default(true)
+  category      Category       @relation(fields: [categoryId], references: [id])
+  creator       User           @relation(fields: [createdBy], references: [id])
+  replies       Reply[]
   userFavorites UserFavorite[]
-  tags        Tag[]          @relation("TopicTag")
-  topicTags  TopicTag[]  // Ceci est le champ de relation inverse pour Topic
+  tags          Tag[]          @relation("TopicTag")
+  topicTags     TopicTag[] // Ceci est le champ de relation inverse pour Topic
 }
 
 model Reply {
-  id          Int       @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   content     String
-  createdBy   Int       // Foreign key
-  topicId     Int       // Foreign key
+  createdBy   Int // Foreign key
+  topicId     Int // Foreign key
   dateCreated DateTime
   is_active   Boolean
-  creator     User      @relation(fields: [createdBy], references: [id])
-  topic       Topic     @relation(fields: [topicId], references: [id])
+  creator     User     @relation(fields: [createdBy], references: [id])
+  topic       Topic    @relation(fields: [topicId], references: [id])
 }
 
 model UserFavorite {
-  id       Int    @id @default(autoincrement())
-  userId   Int    // Foreign key
-  topicId  Int    // Foreign key
-  user     User   @relation(fields: [userId], references: [id])
-  topic    Topic  @relation(fields: [topicId], references: [id])
+  id      Int   @id @default(autoincrement())
+  userId  Int // Foreign key
+  topicId Int // Foreign key
+  user    User  @relation(fields: [userId], references: [id])
+  topic   Topic @relation(fields: [topicId], references: [id])
 }
 
 model Friendship {
-  id       Int     @id @default(autoincrement())
-  userId1  Int     // Foreign key
-  userId2  Int     // Foreign key
-  status   String  // ENUM should be represented as String
-  user1    User    @relation("FriendshipUser1", fields: [userId1], references: [id])
-  user2    User    @relation("FriendshipUser2", fields: [userId2], references: [id])
+  id      Int    @id @default(autoincrement())
+  userId1 Int // Foreign key
+  userId2 Int // Foreign key
+  status  String // ENUM should be represented as String
+  user1   User   @relation("FriendshipUser1", fields: [userId1], references: [id])
+  user2   User   @relation("FriendshipUser2", fields: [userId2], references: [id])
 }
 
 model Chat {
   id       Int           @id @default(autoincrement())
-  userId1  Int           // Foreign key
-  userId2  Int           // Foreign key
+  userId1  Int // Foreign key
+  userId2  Int // Foreign key
   user1    User          @relation("chatsUser1", fields: [userId1], references: [id])
   user2    User          @relation("chatsUser2", fields: [userId2], references: [id])
   messages ChatMessage[]
 }
 
 model ChatMessage {
-  id       Int       @id @default(autoincrement())
-  chatId   Int       // Foreign key
+  id       Int      @id @default(autoincrement())
+  chatId   Int // Foreign key
   content  String
-  sentBy   Int       // Foreign key
+  sentBy   Int // Foreign key
   dateSent DateTime
-  is_read   Boolean   // TINYINT converted to Boolean
-  chat     Chat      @relation(fields: [chatId], references: [id])
-  sender   User      @relation(fields: [sentBy], references: [id])
+  is_read  Boolean // TINYINT converted to Boolean
+  chat     Chat     @relation(fields: [chatId], references: [id])
+  sender   User     @relation(fields: [sentBy], references: [id])
 }
 
 model UserNotification {
   id          Int      @id @default(autoincrement())
-  userId      Int      // Foreign key
+  userId      Int // Foreign key
   content     String
   dateCreated DateTime
-  is_read      Boolean  // TINYINT converted to Boolean
+  is_read     Boolean // TINYINT converted to Boolean
   user        User     @relation(fields: [userId], references: [id])
 }
 
@@ -124,27 +124,27 @@ model ModerationLog {
   id          Int      @id @default(autoincrement())
   action      String
   description String?
-  adminId     Int      // Foreign key
+  adminId     Int // Foreign key
   dateCreated DateTime
   admin       User     @relation(fields: [adminId], references: [id])
 }
 
 model Tag {
-  id       Int       @id @default(autoincrement())
-  name     String    @unique
-  topics   Topic[]   @relation("TopicTag")
-  topicTags  TopicTag[]  // Ceci est le champ de relation inverse pour Tag
+  id        Int        @id @default(autoincrement())
+  name      String     @unique
+  topics    Topic[]    @relation("TopicTag")
+  topicTags TopicTag[] // Ceci est le champ de relation inverse pour Tag
 }
 
 // Prisma doesn't support M2M relations with additional fields natively.
 // You would need to create an explicit intermediate table for that.
 // For example, for a many-to-many relation between `Topic` and `Tag` with an additional `createdAt` field:
 model TopicTag {
-  topicId     Int
-  tagId       Int
-  createdAt   DateTime
-  topic       Topic    @relation(fields: [topicId], references: [id])
-  tag         Tag      @relation(fields: [tagId], references: [id])
+  topicId   Int
+  tagId     Int
+  createdAt DateTime
+  topic     Topic    @relation(fields: [topicId], references: [id])
+  tag       Tag      @relation(fields: [tagId], references: [id])
 
   @@id([topicId, tagId])
 }
