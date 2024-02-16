@@ -49,9 +49,7 @@ export const getTopicsById = async (req: Request, res: Response) => {
 
 export const getAllTopicByTitle = async (req: Request, res: Response) => {
   // console.log("getAllTopicByTitle function called");
-  const { is_active } = req.body;
   const { title } = req.params;
-
   try {
     const topics = await prisma.topic.findMany({
       where: {
@@ -62,7 +60,7 @@ export const getAllTopicByTitle = async (req: Request, res: Response) => {
             },
           },
           {
-            is_active: is_active, 
+            is_active: true, 
           },
         ],
       },
