@@ -4,9 +4,7 @@ import { createCategory, getAllCategory, getCategoryById, getCategoryByName, tog
 
 const router = express.Router();
 
-router.get('/', getAllCategory);
 
-router.get('/:id', getCategoryById);
 
 router.get('/:name', getCategoryByName);
 
@@ -14,5 +12,9 @@ router.patch('/:id/switch', toggleCategoryActiveState);
 
 router.patch('/:id/update', updateCategoryById);
 router.post('/create', createCategory);
+
+
+router.get('/', getAllCategory);
+router.get('/:id', getCategoryById);
 
 export default router;
