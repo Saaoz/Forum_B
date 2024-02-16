@@ -7,6 +7,8 @@ const prisma = new PrismaClient();
 //getAllTag
 
 export const getAllTag = async (req: Request, res: Response) => {
+  // console.log("getAllTag function called");
+
   try {
     const Tag = await prisma.tag.findMany({});
 
@@ -18,19 +20,49 @@ export const getAllTag = async (req: Request, res: Response) => {
   }
 };
 
+export const getAllTagByName = async (req: Request, res: Response) => {
+  // console.log("getAllTagByName function called");
+
+  const { name } = req.params;
+  try {
+    const tags = await prisma.tag.findMany({
+      where: {
+        AND: [
+          {
+            name: {
+              contains: name,
+            },
+          },
+        ],
+      },
+    });
+    if (tags.length > 0) {
+      res.json(tags);
+    } else {
+      res.status(404).json("Can not found tag with the given name");
+    }
+  } catch (error) {
+    if (error instanceof Error) {
+      res
+        .status(500)
+        .json({ error: "Error in getAllTagByName:" + error.message });
+    }
+  }
+};
+
 // getAllTagFromTopic
 
 export const getAllTagFromTopic = async (req: Request, res: Response) => {
-  const { topicId } = req.params; // Récupération de l'ID du topic depuis les paramètres de la requête
+  // console.log("getAllTagFromTopic function called");
 
-  // Convertir topicId en nombre
+  const { topicId } = req.params;
+
   const topicIdNumber = parseInt(topicId, 10);
   if (isNaN(topicIdNumber)) {
     return res.status(400).json({ message: "Invalid topic ID" });
   }
 
   try {
-    // Vérifier si le topic existe
     const existingTopic = await prisma.topic.findUnique({
       where: { id: topicIdNumber },
     });
@@ -39,13 +71,11 @@ export const getAllTagFromTopic = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Topic not found" });
     }
 
-    // Récupérer les tags liés au topic
     const topicTags = await prisma.topicTag.findMany({
       where: { topicId: topicIdNumber },
       include: { tag: true }, // Inclure les détails des tags
     });
 
-    // Extraire les tags de topicTags
     const tags = topicTags.map((topicTag) => topicTag.tag);
 
     res.status(200).json(tags);
@@ -61,6 +91,8 @@ export const getAllTagFromTopic = async (req: Request, res: Response) => {
 // addTagtoTopic
 
 export const addTagtoTopic = async (req: Request, res: Response) => {
+  // console.log("addTagtoTopic function called");
+
   const { topicId, tagId } = req.params;
 
   const topicIdNumber = parseInt(topicId, 10);
@@ -111,6 +143,8 @@ export const addTagtoTopic = async (req: Request, res: Response) => {
 //deleteTagFromTopic
 
 export const deleteTagFromTopic = async (req: Request, res: Response) => {
+  // console.log("deleteTagFromTopic function called");
+
   const { topicId, tagId } = req.params;
 
   const topicIdNumber = parseInt(topicId, 10);
@@ -156,31 +190,32 @@ export const deleteTagFromTopic = async (req: Request, res: Response) => {
 
 //UpdateTag
 
-export const UpdateTag = async (req: Request, res: Response) => {
-  const { TagId, name } = req.params;
+export const UpdateTagById = async (req: Request, res: Response) => {
+  // console.log("UpdateTag function called");
 
-  const TagIdNumber = parseInt(TagId, 10);
-  if (isNaN(TagIdNumber)) {
-    return res.status(400).json({ message: "Invalid Tag ID" });
-  }
+  const { id } = req.params;
+  const { name } = req.body;
+
   try {
     const existingTag = await prisma.tag.findUnique({
-      where: { id: TagIdNumber },
+      where: { id: Number(id) },
     });
     if (!existingTag) {
-      return res.status(404).json({ message: "Tag not found" });
+      return res
+        .status(400)
+        .json({ message: "Tag not found for updateTagById" });
     }
 
-    const updatedTag = await prisma.tag.update({
-      where: { id: TagIdNumber },
+    const updateTag = await prisma.tag.update({
+      where: { id: Number(id) },
       data: {
-        name: name || existingTag.name,
+        name: name !== undefined ? name : existingTag.name,
       },
     });
-    res.status(200).json(updatedTag);
+    res.status(200).json(updateTag);
   } catch (error) {
     if (error instanceof Error) {
-      res.status(500).json({ error: "Error in UpdateTag: " + error.message });
+      res.status(500).json({ error: "Error in updateTagById" + error.message });
     }
   }
 };
@@ -188,6 +223,8 @@ export const UpdateTag = async (req: Request, res: Response) => {
 //CreateTag
 
 export const CreateTag = async (req: Request, res: Response) => {
+  // console.log("CreateTag function called");
+
   const schema = Joi.object({
     name: Joi.string().required(),
   });
@@ -207,7 +244,7 @@ export const CreateTag = async (req: Request, res: Response) => {
     }
 
     let TagData: any = {
-      name: string,
+      name,
     };
 
     const NewTag = await prisma.tag.create({
@@ -226,41 +263,47 @@ export const CreateTag = async (req: Request, res: Response) => {
 //getTop20Tag
 
 export const getTop20Tags = async (req: Request, res: Response) => {
+  // console.log("getTop20Tags function called");
+
   try {
-      const topTags = await prisma.topicTag.groupBy({
-          by: ['tagId'],
-          _count: {
-              tagId: true,
-          },
-          orderBy: {
-              _count: {
-                  tagId: 'desc',
-              },
-          },
-          take: 20,
-      });
+    const topTags = await prisma.topicTag.groupBy({
+      by: ["tagId"],
+      _count: {
+        tagId: true,
+      },
+      orderBy: {
+        _count: {
+          tagId: "desc",
+        },
+      },
+      take: 20,
+    });
 
-      const tagDetails = await prisma.tag.findMany({
-          where: {
-              id: {
-                  in: topTags.map(tag => tag.tagId),
-              },
-          },
-      });
+    const tagDetails = await prisma.tag.findMany({
+      where: {
+        id: {
+          in: topTags.map((tag) => tag.tagId),
+        },
+      },
+    });
 
-      const formattedTags = topTags.map(tag => {
-          return {
-              ...tag,
-              name: tagDetails.find(t => t.id === tag.tagId)?.name,
-          };
-      });
+    const formattedTags = topTags.map((tag) => {
+      return {
+        ...tag,
+        name: tagDetails.find((t) => t.id === tag.tagId)?.name,
+      };
+    });
 
-      res.status(200).json(formattedTags);
+    res.status(200).json(formattedTags);
   } catch (error) {
-      if (error instanceof Error) {
-          res.status(500).json({ error: "Error in getTop20Tags: " + error.message });
-      } else {
-          res.status(500).json({ error: "An unknown error occurred in getTop20Tags" });
-      }
+    if (error instanceof Error) {
+      res
+        .status(500)
+        .json({ error: "Error in getTop20Tags: " + error.message });
+    } else {
+      res
+        .status(500)
+        .json({ error: "An unknown error occurred in getTop20Tags" });
+    }
   }
 };
