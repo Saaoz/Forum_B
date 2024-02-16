@@ -69,7 +69,7 @@ model Reply {
   createdBy   Int // Foreign key
   topicId     Int // Foreign key
   dateCreated DateTime @default(now())
-  is_active   Boolean
+  is_active   Boolean @default(true)
   creator     User     @relation(fields: [createdBy], references: [id])
   topic       Topic    @relation(fields: [topicId], references: [id])
 }
@@ -116,7 +116,7 @@ model UserNotification {
   userId      Int // Foreign key
   content     String
   dateCreated DateTime  @default(now())
-  is_read     Boolean // TINYINT converted to Boolean
+  is_read     Boolean  @default(false)
   user        User     @relation(fields: [userId], references: [id])
 }
 
