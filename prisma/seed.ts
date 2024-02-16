@@ -35,12 +35,21 @@ async function main() {
     );
 
     // Création d'une catégorie
-    const category = await prisma.category.create({
-        data: {
-            name: 'General Discussion',
-            description: 'A place to chat about everything',
-        },
-    });
+    const categoryData = [
+        { name: 'General Discussion', description: 'A place to chat about everything' },
+        { name: 'Tech Talk', description: 'Discussions about technology and gadgets' },
+        { name: 'Gaming', description: 'All things gaming' },
+        { name: 'Programming', description: 'Code, snippets, and more' },
+        { name: 'Movies and TV', description: 'Film, television, and streaming' },
+        { name: 'Books', description: 'Literary discussions' },
+        { name: 'Music', description: 'From classical to contemporary' },
+        { name: 'Travel', description: 'Share your travel stories and advice' },
+        { name: 'Food', description: 'Recipes, restaurants, and more' },
+        { name: 'Fitness', description: 'Health and fitness discussions' }
+    ];
+
+    const category = await Promise.all(categoryData.map(cat => prisma.category.create({ data: cat })));
+
 
     // Création des tags uniques
     const tags = await Promise.all(
@@ -55,13 +64,17 @@ async function main() {
 
     // Création des topics et des réponses pour chaque utilisateur
     for (const user of users) {
+
+        const randomcategory = Math.floor(Math.random() * category.length);
+        const selectCategory = category[randomcategory]
+
         const topic = await prisma.topic.create({
             data: {
                 title: `Topic by ${user.username}`,
                 description: `A fascinating topic by ${user.username}`,
                 createdBy: user.id,
                 dateCreated: new Date(),
-                categoryId: category.id,
+                categoryId: selectCategory.id,
                 is_pinned: false,
                 is_closed: false,
                 is_active: true,
