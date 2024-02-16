@@ -4,6 +4,7 @@ import authRoute from './authRoute'
 import categoryRoute from './categoryRoute'
 import topicRoute from './topicRoute'
 import repliesRoute from './replyRoute'
+import tagsRoute from './tagRoute'
 
 const router = Router();
 
@@ -14,5 +15,7 @@ router.use('/category', categoryRoute );
 router.use('/topics', topicRoute);
 
 router.use('/replies', repliesRoute);
+
+router.use('/tags', tagsRoute )
 
 export default router;
