@@ -7,6 +7,7 @@ const prisma = new PrismaClient();
 //getAllCategory
 
 export const getAllCategory = async (req: Request, res: Response) => {
+  // console.log("getAllCategory function called");
   const { is_active } = req.body;
   // console.log(is_active);
   try {
@@ -26,6 +27,7 @@ export const getAllCategory = async (req: Request, res: Response) => {
 //getCategoryById
 
 export const getCategoryById = async (req: Request, res: Response) => {
+  // console.log("getCategoryById function called");
   const { is_active } = req.body;
   const { id } = req.params;
   // console.log(typeof is_active)
@@ -50,43 +52,39 @@ export const getCategoryById = async (req: Request, res: Response) => {
 //recherche category by name
 
 export const getCategoryByName = async (req: Request, res: Response) => {
-  const { is_active } = req.body;
+  // console.log("getCategoryByName function called");
   const { name } = req.params;
 
   try {
-    // Construction dynamique de l'objet where
-    let whereClause: 
-    { name: string } = { name };
-    { is_active };
-
-    const category = await prisma.category.findMany({
-      where: whereClause,
+    const categories = await prisma.category.findMany({
+      where: {
+        name: {
+          contains: name,
+        },
+        is_active: true, 
+      },
     });
 
-    if (category.length > 0) {
-      res.json(category);
+    if (categories.length > 0) {
+      res.json(categories);
     } else {
-      res.status(404).json("No category found with the given name");
+      res.status(404).json({ message: "No active categories found with the given name" });
     }
   } catch (error) {
     if (error instanceof Error) {
-      res
-        .status(500)
-        .json({ error: "Error in getCategoryByName: " + error.message });
+      res.status(500).json({ error: "Error in getCategoryByName: " + error.message });
     }
   }
 };
 
-
-
 // CREATE PROFIL
 
 export const createCategory = async (req: Request, res: Response) => {
+  // console.log("createCategory function called");
   // Schéma de validation Joi
   const schema = Joi.object({
-    name: Joi.string().alphanum().min(3).max(30).required(),
-    is_active: Joi.boolean().required(),
-    description: Joi.string().uri().optional(),
+    name: Joi.string().min(3).max(30).required(),
+    description: Joi.string().optional(),
   });
   const { error, value } = schema.validate(req.body);
 
@@ -103,13 +101,10 @@ export const createCategory = async (req: Request, res: Response) => {
     if (existingCategoryByName) {
       return res.status(400).json({ message: "Name already in use" });
     }
-    // Hacher le mot de passe
-
     // Préparer l'objet de données pour la création de category
     let categoryData: any = {
-      name: string,
-      description: string,
-      is_active: boolean,
+      name,
+      description
     };
     // Ajouter description seulement s'il est fournis
     if (description) {
@@ -136,6 +131,7 @@ export const createCategory = async (req: Request, res: Response) => {
 //updateCategoryById
 
 export const updateCategoryById = async (req: Request, res: Response) => {
+  // console.log("updateCategoryById function called");
   const { id } = req.params;
   const { name, description, is_active } = req.body;
 
@@ -167,10 +163,8 @@ export const updateCategoryById = async (req: Request, res: Response) => {
 
 //active inactive Category
 
-export const toggleCategoryActiveState = async (
-  req: Request,
-  res: Response
-) => {
+export const toggleCategoryActiveState = async (req: Request,res: Response) => {
+  // console.log("toggleCategoryActiveState function called");
   const { id } = req.params;
 
   try {
@@ -198,11 +192,9 @@ export const toggleCategoryActiveState = async (
     res.status(200).json(updatedCategory);
   } catch (error) {
     if (error instanceof Error) {
-      res
-        .status(500)
-        .json({
-          error: "Error in toggleCategoryActiveState: " + error.message,
-        });
+      res.status(500).json({
+        error: "Error in toggleCategoryActiveState: " + error.message,
+      });
     } else {
       res.status(500).json({ error: "An unknown error occurred" });
     }
