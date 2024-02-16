@@ -18,8 +18,8 @@ model User {
   username        String             @unique
   password        String
   email           String             @unique //patch error email 
-  date_registered DateTime
-  last_login      DateTime? // nullable field
+  date_registered DateTime @default(now())
+  last_login      DateTime? @default(now())
   is_admin        Boolean // TINYINT converted to Boolean
   is_banned       Boolean // TINYINT converted to Boolean
   is_active       Boolean // TINYINT converted to Boolean
@@ -68,7 +68,7 @@ model Reply {
   content     String
   createdBy   Int // Foreign key
   topicId     Int // Foreign key
-  dateCreated DateTime
+  dateCreated DateTime @default(now())
   is_active   Boolean
   creator     User     @relation(fields: [createdBy], references: [id])
   topic       Topic    @relation(fields: [topicId], references: [id])
@@ -105,7 +105,7 @@ model ChatMessage {
   chatId   Int // Foreign key
   content  String
   sentBy   Int // Foreign key
-  dateSent DateTime
+  dateSent DateTime @default(now())
   is_read  Boolean // TINYINT converted to Boolean
   chat     Chat     @relation(fields: [chatId], references: [id])
   sender   User     @relation(fields: [sentBy], references: [id])
@@ -115,7 +115,7 @@ model UserNotification {
   id          Int      @id @default(autoincrement())
   userId      Int // Foreign key
   content     String
-  dateCreated DateTime
+  dateCreated DateTime  @default(now())
   is_read     Boolean // TINYINT converted to Boolean
   user        User     @relation(fields: [userId], references: [id])
 }
@@ -125,7 +125,7 @@ model ModerationLog {
   action      String
   description String?
   adminId     Int // Foreign key
-  dateCreated DateTime
+  dateCreated DateTime @default(now())
   admin       User     @relation(fields: [adminId], references: [id])
 }
 
@@ -142,7 +142,7 @@ model Tag {
 model TopicTag {
   topicId   Int
   tagId     Int
-  createdAt DateTime
+  createdAt DateTime @default(now())
   topic     Topic    @relation(fields: [topicId], references: [id])
   tag       Tag      @relation(fields: [tagId], references: [id])
 
