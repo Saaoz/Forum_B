@@ -5,21 +5,19 @@ import { createReplyForTopic, getAllReply, getAllReplyFromTopicId, getAllReplyFr
 const router = express.Router();
 
 
+router.get('/', getAllReply);
 
+router.get('/topictitle/:title', getAllReplyFromTopicTitle);
 
- router.get('/', getAllReply);
+router.get('/topic/:topicId', getAllReplyFromTopicId)
 
-router.get('/topic/:title', getAllReplyFromTopicTitle);
+router.get('/user/:createdBy', getAllReplyFromUserId)
 
-router.get('/topic/:id', getAllReplyFromTopicId)
-
-router.get('/user/:id', getAllReplyFromUserId)
-
-router.post('/topic/:id/create', createReplyForTopic)
+router.post('/:topicId/create', createReplyForTopic)
 
 router.patch('/:id/update', updateReply )
 
-router.patch('/:id/switch_state', toggleReplyActiveState)
+router.patch('/:id/switch', toggleReplyActiveState)
 
 
 
