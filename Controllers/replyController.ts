@@ -4,25 +4,10 @@ import Joi, { boolean, number, string } from "joi";
 
 const prisma = new PrismaClient();
 
-//PATERN
-
-// export const SSSS = async (req: Request, res:Response) =>{
-//     const {  } = req.body
-//     try{
-
-//     res.status(200).json();
-//     } catch (error) {
-//         if (error instanceof Error) {
-//           res
-//             .status(500)
-//             .json({ error: "Error in : " + error.message });
-//         }
-//       }
-// }
-
 //getAllReply
 
 export const getAllReply = async (req: Request, res: Response) => {
+  // console.log("getAllReply function called");
   const { is_active } = req.body;
   try {
     const Reply = await prisma.reply.findMany({
@@ -41,11 +26,8 @@ export const getAllReply = async (req: Request, res: Response) => {
 
 //getAllReplyFromTopicTitle
 
-export const getAllReplyFromTopicTitle = async (
-  req: Request,
-  res: Response
-) => {
-  const { is_active } = req.body;
+export const getAllReplyFromTopicTitle = async (req: Request,res: Response) => {
+  // console.log("getAllReplyFromTopicTitle function called");
   const { title } = req.params;
 
   try {
@@ -60,8 +42,8 @@ export const getAllReplyFromTopicTitle = async (
     
     const Reply = await prisma.reply.findMany({
       where: {
-        is_active,
         topic: { title },
+        is_active: Boolean(true)
       },
     });
     res.status(200).json(Reply);
@@ -79,30 +61,23 @@ export const getAllReplyFromTopicTitle = async (
 //getAllReplyFromTopicId
 
 export const getAllReplyFromTopicId = async (req: Request, res: Response) => {
-  const { is_active } = req.body;
+  // console.log("getAllReplyFromTopicId function called");
   const { topicId } = req.params;
 
-  // Convertir topicId en nombre
-  const topicIdNumber = parseInt(topicId, 10);
-  if (isNaN(topicIdNumber)) {
-    return res.status(400).json({ message: "Invalid topic ID" });
-  }
-
   try {
-    // Vérifier si le topic existe
+
     const existingTopic = await prisma.topic.findUnique({
-      where: { id: topicIdNumber },
+      where: { id: Number(topicId) },
     });
 
     if (!existingTopic) {
       return res.status(404).json({ message: "Topic not found" });
     }
 
-    // Rechercher les réponses liées au topic
     const reply = await prisma.reply.findMany({
       where: {
-        topicId: topicIdNumber,
-        is_active,
+        topicId: Number(topicId),
+        is_active: Boolean(true),
       },
     });
 
@@ -125,17 +100,15 @@ export const getAllReplyFromTopicId = async (req: Request, res: Response) => {
 //getAllReplyFromUserId
 
 export const getAllReplyFromUserId = async (req: Request, res: Response) => {
-  const { is_active } = req.body;
+  // console.log("getAllReplyFromUserId function called");
   const { createdBy } = req.params;
+  const { is_active } = req.body;
 
-  const createdByNumber = parseInt(createdBy, 10);
-  if (isNaN(createdByNumber)) {
-    return res.status(400).json({ message: "Invalid user ID" });
-  }
+
   try {
     // Vérifier si le topic existe
     const existingTopic = await prisma.user.findUnique({
-      where: { id: createdByNumber },
+      where: { id: Number(createdBy) },
     });
 
     if (!existingTopic) {
@@ -145,8 +118,8 @@ export const getAllReplyFromUserId = async (req: Request, res: Response) => {
     // Rechercher les réponses liées au topic
     const reply = await prisma.reply.findMany({
       where: {
-        topicId: createdByNumber,
-        is_active,
+        topicId: Number(createdBy),
+        is_active: Boolean(true)
       },
     });
     if (reply.length === 0) {
@@ -185,12 +158,12 @@ export const getAllReplyFromUserId = async (req: Request, res: Response) => {
 //createReplyForTopic
 
 export const createReplyForTopic = async (req: Request, res: Response) => {
+  // console.log("createReplyForTopic function called");
+  const { topicId } = req.params;
+
   const schema = Joi.object({
-    content: Joi.string().uri().required(),
+    content: Joi.string().required(),
     createdBy: Joi.number().required(),
-    topicId: Joi.number().required(),
-    is_active: Joi.boolean().required(),
-    dateCreated: Joi.date().required(),
   });
   const { error, value } = schema.validate(req.body);
 
@@ -198,46 +171,31 @@ export const createReplyForTopic = async (req: Request, res: Response) => {
   if (error) {
     return res.status(400).json({ message: error.details[0].message });
   }
-  const { content, createdBy, topicId, is_active, dateCreated } = value;
-
-  //conversion createdBy number
-  const createdByNumber = parseInt(createdBy, 10);
-  if (isNaN(createdByNumber)) {
-    return res.status(400).json({ message: "Invalid user ID" });
-  }
-  //conversion topicId number
-  const topicIdNumber = parseInt(topicId, 10);
-  if (isNaN(createdByNumber)) {
-    return res.status(400).json({ message: "Invalid topic ID" });
-  }
+  const { content, createdBy } = value;
 
   try {
-    //vérifié user existe (utiliser  une constante cratedbynumber
-    //pour convertir en number et donc utiliser createdBy dans id de la table user)
+
     const existingUser = await prisma.user.findUnique({
-      where: { id: createdByNumber, is_active },
+      where: { id: Number(createdBy) }
     });
     if (!existingUser) {
-      return res.status(400).json({ message: "User not found" });
+      return res.status(400).json({ message: "User not found for createReplyForTopic" });
     }
 
-    //check Topic exite
     const existingTopic = await prisma.topic.findUnique({
-      where: { id: topicIdNumber, is_active },
+      where: { id: Number(topicId) }
     });
     if (!existingTopic) {
-      return res.status(400).json({ message: "Topic not found" });
+      return res.status(400).json({ message: "Topic not found for createReplyForTopic" });
     }
 
-    //prépa objet données pour créa
-
     let ReplyData: any = {
-      content: string,
-      createdBy: number,
-      topicId: number,
-      is_active: boolean,
-      dateCreated: string,
+      content,
+      createdBy,
+      topicId: Number(topicId)
     };
+
+    console.log(ReplyData)
 
     const newReply = await prisma.reply.create({
       data: ReplyData,
@@ -259,8 +217,9 @@ export const createReplyForTopic = async (req: Request, res: Response) => {
 //updateReply
 
 export const updateReply = async (req: Request, res: Response) => {
+  // console.log("updateReply function called");
   const { id } = req.params;
-  const { content, is_active } = req.body;
+  const { content } = req.body;
 
   try {
     const existingReply = await prisma.reply.findUnique({
@@ -274,7 +233,6 @@ export const updateReply = async (req: Request, res: Response) => {
       where: { id: Number(id) },
       data: {
         content: content || existingReply.content,
-        is_active: is_active || existingReply.is_active,
       },
     });
     res.status(200).json(updatedReply);
@@ -290,7 +248,7 @@ export const updateReply = async (req: Request, res: Response) => {
 //toggleReplyActiveState
 
 export const toggleReplyActiveState = async (req: Request, res: Response) => {
-
+  // console.log("toggleReplyActiveState function called");
   const { id } = req.params;
 
   try {
