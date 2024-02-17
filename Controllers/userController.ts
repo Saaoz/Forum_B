@@ -10,11 +10,9 @@ const prisma = new PrismaClient();
 //RECHERCHE GLOBAL
 
 export const getAllUsers = async (req: Request, res: Response) => {
-    const { is_active } = req.body;
+    console.log("getAllUsers function called");
     try {
-        const users = await prisma.user.findMany({
-            where: { is_active },
-        });
+        const users = await prisma.user.findMany({});
         res.status(200).json(users);
     } catch (error: unknown) {
         if (error instanceof Error) {
@@ -27,11 +25,11 @@ export const getAllUsers = async (req: Request, res: Response) => {
 
 
 export const getUserById = async (req: Request, res: Response) => {
-    const { is_active } = req.body;
+    console.log("getUserById function called");
     const { id } = req.params;
     try {
         const user = await prisma.user.findUnique({ 
-            where: { id: Number(id), is_active} 
+            where: { id: Number(id)}
         });
         if (user) {
             res.json(user);
@@ -49,22 +47,25 @@ export const getUserById = async (req: Request, res: Response) => {
 //RECHERCHE PAR USERNAME
 
 export const getUserByUsername = async (req: Request, res: Response) => {
-    const { is_active } = req.body;
+    console.log("getUserByUsername function called");
     const { username } = req.params;
     
-
     try {
-        // Construction dynamique de l'objet where
-        let whereClause: { username: string; is_active?: boolean } = { username, is_active };
-
         const users = await prisma.user.findMany({
-            where: whereClause,
+            where: {
+                AND: [ // AND pour s'assurer que tous les critères sont respectés
+                  {
+                    username: {
+                      contains: username
+                    },
+                  },
+                ],
+              },
         });
-
         if (users.length > 0) {
             res.json(users);
         } else {
-            res.status(404).json("No active users found with the given username");
+            res.status(404).json("No users found with the given username");
         }
     } catch (error: unknown) {
         if (error instanceof Error) {
@@ -80,6 +81,7 @@ export const getUserByUsername = async (req: Request, res: Response) => {
 //La fonction de ban est basic la mise en place des logs sera necessaire et donc 
 //ajustement pour avoir l'id de l'admin qui la ban
 export const banUserById = async (req: Request, res: Response) => {
+    console.log("banUserById function called");
     const { id } = req.params;
 
     try {
@@ -109,6 +111,7 @@ export const banUserById = async (req: Request, res: Response) => {
 };
 
 export const debanUserById = async (req: Request, res: Response) => {
+    console.log("debanUserById function called");
     const { id } = req.params;
 
     try {
@@ -143,6 +146,7 @@ export const debanUserById = async (req: Request, res: Response) => {
 //ajustement pour avoir l'id de l'admin qui la ban
 
 export const upAdminById = async (req: Request, res: Response) => {
+    console.log("upAdminById function called");
     const { id } = req.params;
 
     try {
@@ -171,6 +175,7 @@ export const upAdminById = async (req: Request, res: Response) => {
 };
 
 export const revokeAdminById = async (req: Request, res: Response) => {
+    console.log("revokeAdminById function called");
     const { id } = req.params;
 
     try {
@@ -202,6 +207,7 @@ export const revokeAdminById = async (req: Request, res: Response) => {
 // UPDATE PROFIL CREATE
 
 export const updateUserById = async (req: Request, res: Response) => {
+    console.log("updateUserById function called");
     const { id } = req.params;
     const { username, password, avatar, bio } = req.body;
 
@@ -233,62 +239,6 @@ export const updateUserById = async (req: Request, res: Response) => {
     }
 };
 
-// CREATE PROFIL A BOUGER DANS AUTH
-
-export const createUser = async (req: Request, res: Response) => {
-    // Schéma de validation Joi
-    const schema = Joi.object({
-        username: Joi.string().alphanum().min(3).max(30).required(),
-        password: Joi.string().pattern(new RegExp('^[a-zA-Z0-9]{3,30}$')).required(),
-        email: Joi.string().email().email({ minDomainSegments: 2, tlds: { allow: ['com', 'net', 'fr'] } }).required(),
-        avatar: Joi.string().uri().optional(),
-        bio: Joi.string().optional()
-    });
-    const { error, value } = schema.validate(req.body);
-
-    // Si la validation échoue, renvoyez une erreur
-    if (error) {
-        return res.status(400).json({ message: error.details[0].message });
-    }
-    const { username, password, email, avatar, bio } = value;
-    try {
-        // Vérifier l'unicité de l'email et du nom d'utilisateur
-        const existingUserByEmail = await prisma.user.findUnique({ where: { email } });
-        if (existingUserByEmail) {
-            return res.status(400).json({ message: "Email already in use" });
-        }
-        const existingUserByUsername = await prisma.user.findUnique({ where: { username } });
-        if (existingUserByUsername) {
-            return res.status(400).json({ message: "Username already in use" });
-        }
-        // Hacher le mot de passe
-        const hashedPassword = await bcrypt.hash(password, 10);
-        // Préparer l'objet de données pour la création de l'utilisateur
-        let userData: any = {
-            username,
-            email,
-            password: hashedPassword
-        };
-        // Ajouter avatar et bio seulement s'ils sont fournis
-        if (avatar) {
-            userData.avatar = avatar;
-        }
-        if (bio) {
-            userData.bio = bio;
-        }
-        // Créer l'utilisateur
-        const newUser = await prisma.user.create({
-            data: userData
-        });
-        res.status(201).json(newUser);
-    } catch (error: unknown) {
-        if (error instanceof Error) {
-            res.status(500).json({ error: "Error in createUser: " + error.message });
-        } else {
-            res.status(500).json({ error: "An unknown error occurred" });
-        }
-    }
-};
 
 //FONCTION BANNED ACCOUNT DONC PASSAGE REPLY EN INACTIVE
 
