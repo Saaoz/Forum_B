@@ -17,12 +17,12 @@ model User {
   id              Int                @id @default(autoincrement())
   username        String             @unique
   password        String
-  email           String             @unique //patch error email 
+  email           String             @unique 
   date_registered DateTime @default(now())
   last_login      DateTime? @default(now())
-  is_admin        Boolean // TINYINT converted to Boolean
-  is_banned       Boolean // TINYINT converted to Boolean
-  is_active       Boolean // TINYINT converted to Boolean
+  is_admin        Boolean  @default(false)
+  is_banned       Boolean  @default(false)
+  is_active       Boolean  @default(true)
   avatar          String? // nullable field
   bio             String? // nullable field
   createdTopics   Topic[] // Relation field
