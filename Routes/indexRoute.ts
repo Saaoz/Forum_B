@@ -10,12 +10,14 @@ const router = Router();
 
 router.use('/users', userRoute); 
 
-router.use('/category', categoryRoute );
+router.use('/category', categoryRoute);
 
 router.use('/topics', topicRoute);
 
 router.use('/replies', repliesRoute);
 
-router.use('/tags', tagsRoute )
+router.use('/tags', tagsRoute);
+
+router.use('/auth', authRoute);
 
 export default router;
