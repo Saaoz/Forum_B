@@ -98,8 +98,6 @@ async function main() {
                 content: `Reply to ${topic.title}`,
                 createdBy: user.id,
                 topicId: topic.id,
-                is_active: true,
-                dateCreated: new Date(),
             },
         });
     }
