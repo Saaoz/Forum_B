@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
-import Joi, { any, bool, boolean, number, string } from "joi";
+import Joi from "joi";
 
 const prisma = new PrismaClient();
 
