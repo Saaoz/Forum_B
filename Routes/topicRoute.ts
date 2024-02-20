@@ -10,7 +10,7 @@ const router = express.Router();
 router.post('/create', createTopic);
 router.get('/topic_category/:categoryId', getAllTopicByCategoryId);
 router.get('/topic_user/:createdBy', getAllTopicByCreatedId);
-router.post('/:title', getAllTopicByTitle); // Considérez de changer 'post' en 'get' si cette route est destinée à récupérer des données
+router.post('/:title', getAllTopicByTitle); 
 
 // Ensuite, les routes plus génériques
 router.get('/', getAllTopics);
