@@ -1,7 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import passport from 'passport';
 import { DecodedToken } from '../Config/types';
 import bcrypt from 'bcrypt';
 import Joi from "joi";
