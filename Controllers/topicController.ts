@@ -100,7 +100,7 @@ export const getAllTopicByCategoryId = async (req: Request, res: Response) => {
     const topics = await prisma.topic.findMany({
       where: {
         categoryId: parseInt(categoryId),
-        is_active,
+        is_active: is_active(true),
       },
     });
 
