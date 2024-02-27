@@ -50,6 +50,7 @@ export const getTopicsById = async (req: Request, res: Response) => {
 export const getAllTopicByTitle = async (req: Request, res: Response) => {
   // console.log("getAllTopicByTitle function called");
   const { title } = req.params;
+  
   try {
     const topics = await prisma.topic.findMany({
       where: {
@@ -65,12 +66,7 @@ export const getAllTopicByTitle = async (req: Request, res: Response) => {
         ],
       },
     });
-
-    if (topics.length > 0) {
-      res.json(topics);
-    } else {
-      res.status(404).json("No active topics found with the given title");
-    }
+    res.status(200).json(topics);
   } catch (error) {
     if (error instanceof Error) {
       res
@@ -85,25 +81,29 @@ export const getAllTopicByTitle = async (req: Request, res: Response) => {
 export const getAllTopicByCategoryId = async (req: Request, res: Response) => {
   // console.log("getAllTopicByCategoryId function called");
   const { categoryId } = req.params;
-  const { is_active } = req.body;
 
   try {
-    // Convertir categoryId en nombre et vérifier si la catégorie existe
     const categoryExists = await prisma.category.findUnique({
-      where: { id: parseInt(categoryId) },
+      where: { id: Number(categoryId) },
     });
-
+    // console.log(categoryExists)
     if (!categoryExists) {
       return res.status(404).json({ message: "Category not found" });
     }
 
     const topics = await prisma.topic.findMany({
       where: {
-        categoryId: parseInt(categoryId),
-        is_active: is_active(true),
+        AND: [ // AND pour s'assurer que tous les critères sont respectés
+          {
+            categoryId: Number(categoryId),
+          },
+          {
+            is_active: true, 
+          },
+        ],
       },
     });
-
+    // console.log(topics)
     if (!topics) {
       return res.status(404).json("No topics found for the given category");
     }
@@ -122,11 +122,11 @@ export const getAllTopicByCategoryId = async (req: Request, res: Response) => {
 export const getAllTopicByCreatedId = async (req: Request, res: Response) => {
   // console.log("getAllTopicByCreatedId function called");
   const { createdBy } = req.params;
-  const { is_active } = req.body;
+
   try {
     // Convertir categoryId en nombre et vérifier si la catégorie existe
     const categoryExists = await prisma.user.findUnique({
-      where: { id: parseInt(createdBy) },
+      where: { id: Number(createdBy) },
     });
 
     if (!categoryExists) {
@@ -136,7 +136,7 @@ export const getAllTopicByCreatedId = async (req: Request, res: Response) => {
     const topics = await prisma.topic.findMany({
       where: {
         createdBy: parseInt(createdBy),
-        is_active,
+        is_active: true,
       },
     });
 

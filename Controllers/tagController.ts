@@ -36,11 +36,7 @@ export const getAllTagByName = async (req: Request, res: Response) => {
         ],
       },
     });
-    if (tags.length > 0) {
-      res.json(tags);
-    } else {
-      res.status(404).json("Can not found tag with the given name");
-    }
+    res.status(200).json(tags);
   } catch (error) {
     if (error instanceof Error) {
       res
@@ -57,14 +53,9 @@ export const getAllTagFromTopic = async (req: Request, res: Response) => {
 
   const { topicId } = req.params;
 
-  const topicIdNumber = parseInt(topicId, 10);
-  if (isNaN(topicIdNumber)) {
-    return res.status(400).json({ message: "Invalid topic ID" });
-  }
-
   try {
     const existingTopic = await prisma.topic.findUnique({
-      where: { id: topicIdNumber },
+      where: { id: Number(topicId) },
     });
 
     if (!existingTopic) {
@@ -72,7 +63,7 @@ export const getAllTagFromTopic = async (req: Request, res: Response) => {
     }
 
     const topicTags = await prisma.topicTag.findMany({
-      where: { topicId: topicIdNumber },
+      where: { topicId: Number(topicId) },
       include: { tag: true }, // Inclure les détails des tags
     });
 
@@ -93,18 +84,12 @@ export const getAllTagFromTopic = async (req: Request, res: Response) => {
 export const addTagtoTopic = async (req: Request, res: Response) => {
   // console.log("addTagtoTopic function called");
 
-  const { topicId, tagId } = req.params;
-
-  const topicIdNumber = parseInt(topicId, 10);
-  const tagIdNumber = parseInt(tagId, 10);
-  if (isNaN(topicIdNumber) || isNaN(tagIdNumber)) {
-    return res.status(400).json({ message: "Invalid topic ID or tag ID" });
-  }
+  const topicIdNum = Number(req.params.topicId)
+  const tagIdNum = Number(req.params.tagId)
 
   try {
-    // Vérifier si le topic existe
     const existingTopic = await prisma.topic.findUnique({
-      where: { id: topicIdNumber },
+      where: { id: topicIdNum },
     });
 
     if (!existingTopic) {
@@ -113,21 +98,32 @@ export const addTagtoTopic = async (req: Request, res: Response) => {
 
     // Vérifier si le tag existe
     const existingTag = await prisma.tag.findUnique({
-      where: { id: tagIdNumber },
+      where: { id: tagIdNum },
     });
 
     if (!existingTag) {
       return res.status(404).json({ message: "Tag not found" });
     }
 
-    let TagData: any = {
-      topicId: topicIdNumber,
-      tagId: tagIdNumber,
-    };
+    const existingRelation = await prisma.topicTag.findUnique({
+      where: {
+        topicId_tagId: {
+          topicId: topicIdNum,
+          tagId: tagIdNum,
+        },
+      },
+    });
 
+    if (existingRelation) {
+      return res.status(409).json({ message: "This tag is already added to the topic." });
+    }
+    
     // Ajouter le tag au topic
     const topicTag = await prisma.topicTag.create({
-      data: TagData,
+      data: {
+        topicId: topicIdNum,
+        tagId: tagIdNum,
+      },
     });
 
     res.status(201).json(topicTag);
@@ -147,17 +143,12 @@ export const deleteTagFromTopic = async (req: Request, res: Response) => {
 
   const { topicId, tagId } = req.params;
 
-  const topicIdNumber = parseInt(topicId, 10);
-  const tagIdNumber = parseInt(tagId, 10);
-  if (isNaN(topicIdNumber) || isNaN(tagIdNumber)) {
-    return res.status(400).json({ message: "Invalid topic ID or tag ID" });
-  }
   try {
     const existingTopicTag = await prisma.topicTag.findUnique({
       where: {
         topicId_tagId: {
-          topicId: topicIdNumber,
-          tagId: tagIdNumber,
+          topicId: Number(topicId),
+          tagId: Number(tagId),
         },
       },
     });
@@ -172,8 +163,8 @@ export const deleteTagFromTopic = async (req: Request, res: Response) => {
     await prisma.topicTag.delete({
       where: {
         topicId_tagId: {
-          topicId: topicIdNumber,
-          tagId: tagIdNumber,
+          topicId: Number(topicId),
+          tagId: Number(tagId),
         },
       },
     });

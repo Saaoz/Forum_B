@@ -9,7 +9,7 @@ const prisma = new PrismaClient();
 //RECHERCHE GLOBAL
 
 export const getAllUsers = async (req: Request, res: Response) => {
-    console.log("getAllUsers function called");
+    // console.log("getAllUsers function called");
     try {
         const users = await prisma.user.findMany({});
         res.status(200).json(users);
@@ -24,7 +24,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
 
 
 export const getUserById = async (req: Request, res: Response) => {
-    console.log("getUserById function called");
+    // console.log("getUserById function called");
     const { id } = req.params;
     try {
         const user = await prisma.user.findUnique({ 
@@ -46,7 +46,7 @@ export const getUserById = async (req: Request, res: Response) => {
 //RECHERCHE PAR USERNAME
 
 export const getUserByUsername = async (req: Request, res: Response) => {
-    console.log("getUserByUsername function called");
+    // console.log("getUserByUsername function called");
     const { username } = req.params;
     
     try {
@@ -61,11 +61,7 @@ export const getUserByUsername = async (req: Request, res: Response) => {
                 ],
               },
         });
-        if (users.length > 0) {
-            res.json(users);
-        } else {
-            res.status(404).json("No users found with the given username");
-        }
+        res.status(200).json(users);
     } catch (error: unknown) {
         if (error instanceof Error) {
             res
@@ -80,7 +76,7 @@ export const getUserByUsername = async (req: Request, res: Response) => {
 //La fonction de ban est basic la mise en place des logs sera necessaire et donc 
 //ajustement pour avoir l'id de l'admin qui la ban
 export const banUserById = async (req: Request, res: Response) => {
-    console.log("banUserById function called");
+    // console.log("banUserById function called");
     const { id } = req.params;
 
     try {
@@ -110,7 +106,7 @@ export const banUserById = async (req: Request, res: Response) => {
 };
 
 export const debanUserById = async (req: Request, res: Response) => {
-    console.log("debanUserById function called");
+    // console.log("debanUserById function called");
     const { id } = req.params;
 
     try {
@@ -145,7 +141,7 @@ export const debanUserById = async (req: Request, res: Response) => {
 //ajustement pour avoir l'id de l'admin qui la ban
 
 export const upAdminById = async (req: Request, res: Response) => {
-    console.log("upAdminById function called");
+    // console.log("upAdminById function called");
     const { id } = req.params;
 
     try {
@@ -174,7 +170,7 @@ export const upAdminById = async (req: Request, res: Response) => {
 };
 
 export const revokeAdminById = async (req: Request, res: Response) => {
-    console.log("revokeAdminById function called");
+    // console.log("revokeAdminById function called");
     const { id } = req.params;
 
     try {
@@ -206,7 +202,7 @@ export const revokeAdminById = async (req: Request, res: Response) => {
 // UPDATE PROFIL CREATE
 
 export const updateUserById = async (req: Request, res: Response) => {
-    console.log("updateUserById function called");
+    // console.log("updateUserById function called");
     const { id } = req.params;
     const { username, password, avatar, bio } = req.body;
 

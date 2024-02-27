@@ -8,11 +8,10 @@ const prisma = new PrismaClient();
 
 export const getAllCategory = async (req: Request, res: Response) => {
   // console.log("getAllCategory function called");
-  const { is_active } = req.body;
-  // console.log(is_active);
+
   try {
     const Category = await prisma.category.findMany({
-      where: { is_active },
+      where: { is_active:true },
     });
     res.status(200).json(Category);
   } catch (error) {
@@ -28,12 +27,11 @@ export const getAllCategory = async (req: Request, res: Response) => {
 
 export const getCategoryById = async (req: Request, res: Response) => {
   // console.log("getCategoryById function called");
-  const { is_active } = req.body;
   const { id } = req.params;
   // console.log(typeof is_active)
   try {
     const category = await prisma.category.findUnique({
-      where: { id: Number(id), is_active },
+      where: { id: Number(id), is_active:true },
     });
     if (category) {
       res.json(category);
@@ -64,12 +62,7 @@ export const getCategoryByName = async (req: Request, res: Response) => {
         is_active: true, 
       },
     });
-
-    if (categories.length > 0) {
-      res.json(categories);
-    } else {
-      res.status(404).json({ message: "No active categories found with the given name" });
-    }
+    res.status(200).json(categories);
   } catch (error) {
     if (error instanceof Error) {
       res.status(500).json({ error: "Error in getCategoryByName: " + error.message });
@@ -92,11 +85,11 @@ export const createCategory = async (req: Request, res: Response) => {
   if (error) {
     return res.status(400).json({ message: error.details[0].message });
   }
-  const { name, is_active, description } = value;
+  const { name, description } = value;
   try {
     // Vérifier l'unicité du name
     const existingCategoryByName = await prisma.category.findUnique({
-      where: { name, is_active },
+      where: { name, is_active:true },
     });
     if (existingCategoryByName) {
       return res.status(400).json({ message: "Name already in use" });
