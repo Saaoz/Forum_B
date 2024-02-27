@@ -11,7 +11,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'fallbackSecret';
 
 
 export const createUser = async (req: Request, res: Response) => {
-    console.log("createUser function called");
+    // console.log("createUser function called");
     // Schéma de validation Joi
     const schema = Joi.object({
         username: Joi.string().alphanum().min(3).max(30).required(),
@@ -66,7 +66,7 @@ export const createUser = async (req: Request, res: Response) => {
       };
 
 export const loginUser = async (req: Request, res: Response) => {
-    console.log("loginUser function called")
+    // console.log("loginUser function called")
     const { username, password } = req.body;
 
     try{
@@ -99,7 +99,7 @@ export const loginUser = async (req: Request, res: Response) => {
 };
 
 export const checkAuth = (req: Request, res: Response, next: NextFunction) => {
-    console.log("loginUser function called")
+    // console.log("loginUser function called")
     const token = req.cookies.jwt;
 
     if (token) {
